@@ -9,7 +9,7 @@ import lombok.*;
 @Builder
 public class MenuResponseDto {
     private Long id;
-    private Long store_id;
+    private Long storeId;
     private String name;
     private String img;
     private Integer price;

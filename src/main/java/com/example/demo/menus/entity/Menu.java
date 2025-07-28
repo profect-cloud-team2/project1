@@ -17,7 +17,7 @@ public class Menu {
     private Long id;
 
     @Column(nullable = false)
-    private Long store_id;
+    private Long storeId;
 
     @Column(nullable = false)
     private String name;
