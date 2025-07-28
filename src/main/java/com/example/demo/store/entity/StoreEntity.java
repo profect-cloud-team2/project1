@@ -1,5 +1,7 @@
 package com.example.demo.store.entity;
 
+import java.util.UUID;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -10,8 +12,8 @@ import lombok.Data;
 @Data
 public class StoreEntity {
 	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	private Long id;
+	@GeneratedValue(strategy = GenerationType.AUTO)
+	private UUID id;
 	private String name;
 	private String address1;
 	private String address2;

@@ -52,5 +52,4 @@ public class OrderEntity {
 
 	private LocalDateTime deletedAt;
 	private UUID deletedBy;
-
 }
