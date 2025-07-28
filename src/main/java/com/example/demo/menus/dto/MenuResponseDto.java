@@ -1,0 +1,17 @@
+package com.example.demo.menus.dto;
+
+import lombok.*;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class MenuResponseDto {
+    private Long id;
+    private Long store_id;
+    private String name;
+    private String img;
+    private Integer price;
+}
+
