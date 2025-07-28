@@ -3,8 +3,8 @@ services:
     image: postgres:latest
     container_name: sample-postgres
     ports:
-      - 5432:5432
+      - ${DB_PORT}:${DB_PORT}
     environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+      - POSTGRES_USER=${DB_USER}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
