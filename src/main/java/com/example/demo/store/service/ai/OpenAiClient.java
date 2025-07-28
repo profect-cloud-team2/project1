@@ -9,12 +9,8 @@ import reactor.core.publisher.Mono;
 import java.util.List;
 import java.util.Map;
 
-import org.springframework.stereotype.Component;
-
-
 @Component
 public class OpenAiClient {
-
 
 	private final WebClient webClient;
 
@@ -77,8 +73,5 @@ public class OpenAiClient {
 			System.err.println("❌ GPT 호출 실패: " + e.getMessage());
 			return "AI 설명 생성 실패";
 		}
-	public String getCompletion(String prompt) {
-		// 실제 OpenAI 호출은 배포 전까지 생략
-		return "김밥천국 대표도 인정한 지점입니다.";
 	}
 }
