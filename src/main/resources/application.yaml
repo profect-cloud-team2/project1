@@ -23,6 +23,9 @@ spring:
   sql:
     init:
       mode: never
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
 
 jwt:
   secret: ${JWT_ACCESS_SECRET}
