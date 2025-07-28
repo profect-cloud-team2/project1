@@ -18,3 +18,19 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+        jdbc:
+          time_zone: UTC
+  sql:
+    init:
+      mode: never
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+
+jwt:
+  secret: ${JWT_ACCESS_SECRET}
+
+logging:
+  level:
+    org.springframework.security: DEBUG
+    com.example.demo: DEBUG
