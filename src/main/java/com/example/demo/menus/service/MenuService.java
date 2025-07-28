@@ -17,8 +17,12 @@ public class MenuService {
     private final MenuRepository menuRepository;
 
     public MenuResponseDto createMenu(MenuRequestDto requestDto) {
+        if (menuRepository.existsByStoreIdAndName(requestDto.getStoreId(), requestDto.getName())) {
+            throw new IllegalArgumentException("이미 등록된 메뉴입니다.");
+        }
+
         Menu menu = Menu.builder()
-                .store_id(requestDto.getStore_id())
+                .storeId(requestDto.getStoreId())
                 .name(requestDto.getName())
                 .img(requestDto.getImg())
                 .price(requestDto.getPrice())
@@ -28,7 +32,7 @@ public class MenuService {
 
         return MenuResponseDto.builder()
                 .id(savedMenu.getId())
-                .store_id(savedMenu.getStore_id())
+                .storeId(savedMenu.getStoreId())
                 .name(savedMenu.getName())
                 .img(savedMenu.getImg())
                 .price(savedMenu.getPrice())
