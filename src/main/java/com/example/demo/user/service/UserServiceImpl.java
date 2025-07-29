@@ -1,6 +1,6 @@
 package com.example.demo.user.service;
 
-import com.example.demo.global.security.JwtUtil;
+import com.example.demo.global.jwt.AccessTokenProvider;
 import com.example.demo.user.dto.LoginReq;
 import com.example.demo.user.dto.LoginRes;
 import com.example.demo.user.dto.UserDetailRes;
@@ -9,7 +9,13 @@ import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import java.util.Collection;
+import java.util.Collections;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.UUID;
@@ -19,9 +25,9 @@ import java.util.UUID;
 @Transactional
 public class UserServiceImpl implements UserService {
 
+    private final AccessTokenProvider accessTokenProvider;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final JwtUtil jwtUtil;
 
     @Override
     public UserEntity signup(UserSignUpReq request) {
@@ -56,8 +62,17 @@ public class UserServiceImpl implements UserService {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
         }
 
-        String token = jwtUtil.generateAccessToken(user.getLoginId(), user.getUserId().toString(), user.getRole().getDescription());
-        return new LoginRes(token, "로그인 성공");
+        Collection<GrantedAuthority> authorities = Collections.singletonList(
+            new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+        );
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+            user.getUserId().toString(),
+            null,
+            authorities
+        );
+
+        String accessToken = accessTokenProvider.createAccessToken(authentication);
+        return new LoginRes(accessToken, "로그인 성공");
     }
 
     @Override
