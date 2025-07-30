@@ -38,6 +38,9 @@ public class TossPaymentClient {
 	@Value("${payment.toss.secret-key}")
 	private String secretKey;
 
+	@Value("${TOSS_CLIENT_KEY")
+	private String clientKey;
+
 	@Value("${payment.toss.api-url}")
 	private String baseurl;
 
