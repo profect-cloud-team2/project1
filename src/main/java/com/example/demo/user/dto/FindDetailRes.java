@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class UserDetailRes {
+public class FindDetailRes {
 	private String name;
 	private String birthdate;
 	private String phone;
