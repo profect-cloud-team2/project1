@@ -38,6 +38,7 @@ public class StoreService {
 			.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
 		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, desc);
+		entity.setCreatedBy(user.getUserId());
 		StoreEntity saved = storeRepository.save(entity);
 
 		return toResponseDto(saved);

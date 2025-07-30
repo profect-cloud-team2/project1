@@ -53,7 +53,7 @@ public class StoreEntity {
 	@Column(precision = 9, scale = 6)
 	private BigDecimal store_longitude;
 
-	@Column(name = "phone_num",nullable = false, length = 10)
+	@Column(name = "phone_num",nullable = false, length = 11)
 	private String phoneNum;
 
 	@Column(name = "introduction", nullable = true)
