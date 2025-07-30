@@ -15,6 +15,8 @@ import org.json.simple.JSONObject;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.example.demo.payment.dto.CancelPaymentReq;
+import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
 import com.example.demo.payment.dto.ConfirmPaymentRes;
@@ -67,6 +69,24 @@ public class TossPaymentClient {
 		log.info("Toss 요청 바디: {}", body.toJSONString());
 		String response = readResponse(conn);
 		return objectMapper.readValue(response, DirectPaymentRes.class);
+	}
+
+	// 결제 취소
+	public CancelPaymentRes requestCancelPayment(CancelPaymentReq req) throws IOException {
+		URL url = new URL(baseurl + "/v1/payments/" + req.getPaymentKey() + "/cancel");
+		HttpURLConnection conn = createConnection(url);
+
+		JSONObject body = new JSONObject();
+		body.put("paymentKey", req.getPaymentKey());
+		body.put("cancelReason", req.getCancelReason());
+		body.put("cancelAmount", req.getCancelAmount());
+
+		writeBody(conn, body);
+
+		log.info("Toss 요청 바디: {}", body.toJSONString());
+
+		String response = readResponse(conn);
+		return objectMapper.readValue(response, CancelPaymentRes.class);
 	}
 
 	// 인증결제

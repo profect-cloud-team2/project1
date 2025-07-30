@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.payment.dto.CancelPaymentReq;
+import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
 import com.example.demo.payment.dto.ConfirmPaymentRes;
@@ -39,6 +41,13 @@ public class PaymentController {
 	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody CheckoutPaymentReq req) throws IOException {
 		CheckoutPaymentRes response = paymentService.requestCheckoutPayment(req);
 		return ResponseEntity.ok(response);
+	}
+
+	//결제 취소
+	@PostMapping("/{paymentKey}/cancel")
+	public ResponseEntity<String> cancel(@RequestBody CancelPaymentReq req) throws IOException {
+		CancelPaymentRes response = paymentService.requestCancelPayment(req);
+		return ResponseEntity.ok("결제가 취소되었습니다.");
 	}
 
 	// 결제 성공

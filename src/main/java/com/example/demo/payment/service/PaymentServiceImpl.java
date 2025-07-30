@@ -6,6 +6,8 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.payment.client.TossPaymentClient;
+import com.example.demo.payment.dto.CancelPaymentReq;
+import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
 import com.example.demo.payment.dto.ConfirmPaymentRes;
@@ -33,5 +35,10 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public ConfirmPaymentRes confirmPayment(String paymentKey, UUID orderId, int amount) throws IOException {
 		return tossPaymentClient.confirmPayment(paymentKey, orderId, amount);
+	}
+
+	@Override
+	public CancelPaymentRes requestCancelPayment(CancelPaymentReq req) throws IOException {
+		return tossPaymentClient.requestCancelPayment(req);
 	}
 }
