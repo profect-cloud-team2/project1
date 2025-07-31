@@ -16,7 +16,7 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping("/signup")
-    public ResponseEntity<String> signup(@Valid @RequestBody UserSignUpReq request) {
+    public ResponseEntity<String> signup(@Valid @RequestBody SignUpReq request) {
         try {
             userService.signup(request);
             return ResponseEntity.ok("회원가입이 완료되었습니다");
@@ -38,8 +38,18 @@ public class UserController {
     @GetMapping("/detail")
     public ResponseEntity<?> getDetailInfo(@AuthenticationPrincipal String userId){
         try{
-            UserDetailRes response = userService.getUserDetailInfo(userId);
+            FindDetailRes response = userService.getUserDetailInfo(userId);
             return ResponseEntity.ok(response);
+        } catch (IllegalArgumentException e){
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PatchMapping("/edit")
+    public ResponseEntity<?> editDetailInfo(@AuthenticationPrincipal String userId, @RequestBody EditDetailInfoReq req){
+        try{
+            EditDetailInfoRes res = userService.editUserDetailInfo(userId, req);
+            return ResponseEntity.ok(res);
         } catch (IllegalArgumentException e){
             return ResponseEntity.badRequest().body(e.getMessage());
         }
