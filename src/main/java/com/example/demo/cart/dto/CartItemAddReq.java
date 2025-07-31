@@ -3,8 +3,6 @@ package com.example.demo.cart.dto;
 import java.util.List;
 import java.util.UUID;
 
-import com.example.demo.cart.entity.CartItemEntity;
-
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -12,13 +10,13 @@ import lombok.Data;
 
 @Data
 public class CartItemAddReq {
-
-	@NotNull
+	
 	private UUID storeId;
 
 	@NotEmpty
-	private List<CartItemEntity> MenuItems;
+	private List<MenuItem> MenuItems;
 
+	@Data
 	public static class MenuItem {
 		@NotNull
 		private UUID menuId;

@@ -3,7 +3,7 @@ package com.example.demo.cart.entity;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.example.demo.menus.entity.Menu;
+import com.example.demo.menus.entity.MenuEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -32,7 +32,7 @@ public class CartItemEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "menu_id", nullable = false)
-	private Menu menu;
+	private MenuEntity menu;
 
 	@Column(nullable = false)
 	private int quantity;
@@ -42,4 +42,7 @@ public class CartItemEntity {
 
 	private LocalDateTime createdAt;
 	private UUID createdBy;
+
+	private LocalDateTime updatedAt;
+	private UUID updatedBy;
 }

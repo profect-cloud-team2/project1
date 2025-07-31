@@ -10,5 +10,6 @@ import com.example.demo.cart.entity.CartItemEntity;
 
 @Repository
 public interface CartItemRepository extends JpaRepository<CartItemEntity, UUID> {
-	Optional<CartItemEntity> findByCart_CartIdAndMenu_MenuIdAndDeletedAtIsNull(UUID cartId, UUID menuId);
+	Optional<CartItemEntity> findByCart_CartIdAndMenu_MenuId(UUID cartId, UUID menuId);
+
 }
