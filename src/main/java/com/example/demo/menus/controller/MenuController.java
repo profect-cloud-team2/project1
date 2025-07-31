@@ -2,13 +2,13 @@ package com.example.demo.menus.controller;
 
 import com.example.demo.menus.dto.MenuRequestDto;
 import com.example.demo.menus.dto.MenuResponseDto;
+import com.example.demo.menus.dto.MenuUpdateRequestDto;
 import com.example.demo.menus.service.MenuService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.*;
 
 @RestController
 @RequestMapping("/api/menus")
@@ -22,4 +22,12 @@ public class MenuController {
         MenuResponseDto response = menuService.createMenu(requestDto);
         return ResponseEntity.ok(response);
     }
+
+    @PutMapping("/{menuId}")
+    public ResponseEntity<MenuResponseDto> updateMenu(
+            @PathVariable UUID menuId,
+            @RequestBody MenuUpdateRequestDto requestDto) {
+        return ResponseEntity.ok(menuService.updateMenu(menuId, requestDto));
+    }
+
 }
