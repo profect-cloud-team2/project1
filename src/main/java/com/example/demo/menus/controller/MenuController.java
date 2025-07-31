@@ -23,7 +23,7 @@ public class MenuController {
         return ResponseEntity.ok(response);
     }
 
-    @PutMapping("/{menuId}")
+    @PatchMapping("{menuId}")
     public ResponseEntity<MenuResponseDto> updateMenu(
             @PathVariable UUID menuId,
             @RequestBody MenuUpdateRequestDto requestDto) {
