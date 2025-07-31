@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,9 +37,10 @@ public class StoreController {
 		}
 	)
 	@PostMapping
-	public ResponseEntity<?> registerStore(@Valid @RequestBody StoreCreateRequestDto dto) {
+	public ResponseEntity<?> registerStore(@AuthenticationPrincipal String userId,
+		@Valid @RequestBody StoreCreateRequestDto dto) {
 		try {
-			StoreResponseDto response = storeService.createStore(dto);
+			StoreResponseDto response = storeService.createStore(dto, userId);
 			return ResponseEntity.status(201).body(response);
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.status(409).body(e.getMessage());

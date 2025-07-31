@@ -1,9 +1,19 @@
 package com.example.demo.store.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum Category {
-    한식,
-    중식,
-    양식,
-    일식,
-    야식
+	KOREAN("한식"),
+	CHINESE("중식"),
+	WESTERN("양식"),
+	JAPANESE("일식"),
+	LATENIGHT("야식");
+
+	private final String description;
+
+	Category(String description) {
+		this.description = description;
+	}
+
 }
