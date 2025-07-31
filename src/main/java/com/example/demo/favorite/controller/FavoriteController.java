@@ -10,6 +10,8 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -45,7 +47,15 @@ public class FavoriteController {
 		return ResponseEntity.ok(result);
 	}
 
-	// 가게 찜 하기
-	// 가게 찜 취소하기
+	// 가게 찜<->취소 (토글)
+	@PostMapping("/{storeId}")
+	public ResponseEntity<Void> toggleFavorite(
+		@AuthenticationPrincipal String userId,
+		@PathVariable String storeId
+	) {
+		favoriteService.toggleFavorite(userId, storeId);
+		// 204 No Content: body 없이 “성공”을 알림
+		return ResponseEntity.noContent().build();
+	}
 
 }
