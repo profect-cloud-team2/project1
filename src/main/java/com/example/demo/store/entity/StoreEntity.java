@@ -19,6 +19,7 @@ import java.util.UUID;
 @Table(name = "p_store_info")
 @Getter
 @Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 
@@ -136,7 +137,21 @@ public class StoreEntity {
 		this.imgURL = dto.getImgURL();
 		this.openTime = LocalTime.parse(dto.getOpenTime());
 		this.closedTime = LocalTime.parse(dto.getClosedTime());
-		this.isAvailable = dto.getIsAvailable(); // Enum 타입이라면 그대로 매핑
+		this.isAvailable = dto.getIsAvailable();
+	}
+
+	public void softDelete(StoreStatus status, String reason, UUID deletedBy) {
+		this.deletedAt = LocalDateTime.now();
+		this.deletedBy = deletedBy;
+		this.isAvailable = status;
+		this.introduction = "[삭제됨] " + reason;
+	}
+
+	public void rejectClosure(String reason, UUID adminId) {
+		this.isAvailable = StoreStatus.OPEN;
+		this.updatedBy = adminId;
+		this.updatedAt = LocalDateTime.now();
+		this.introduction = "[폐업 거절] " + reason;
 	}
 }
 
