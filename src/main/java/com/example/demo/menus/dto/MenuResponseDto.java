@@ -1,5 +1,6 @@
 package com.example.demo.menus.dto;
 
+import com.example.demo.menus.entity.MenuStatus;
 import com.example.demo.store.entity.StoreEntity;
 import lombok.*;
 import java.util.*;
@@ -17,6 +18,6 @@ public class MenuResponseDto {
     private Integer price;
     private String introduction;
     private Integer requiredTime;
-    private String isAvailable;
+    private MenuStatus isAvailable;
 }
 

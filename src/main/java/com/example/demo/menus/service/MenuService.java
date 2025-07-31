@@ -40,7 +40,7 @@ public class MenuService {
                 .imgURL(requestDto.getImg())   // 엔티티 필드명에 맞게 수정
                 .price(requestDto.getPrice())
                 .introduction(requestDto.getIntroduction())
-                //.requiredTime(requestDto.getRequiredTime())
+                .requiredTime(requestDto.getRequiredTime())
                 .isAvailable(MenuStatus.ONSALE) // 기본 상태
                 .build();
 
@@ -56,7 +56,7 @@ public class MenuService {
                 .price(savedMenu.getPrice())
                 .introduction(savedMenu.getIntroduction())
                 .requiredTime(savedMenu.getRequiredTime())
-                .isAvailable(savedMenu.getIsAvailable().name())
+                .isAvailable(savedMenu.getIsAvailable())
                 .build();
 
     }
@@ -73,7 +73,7 @@ public class MenuService {
         if (requestDto.getPrice() != null) menu.setPrice(requestDto.getPrice());
         if (requestDto.getIntroduction() != null) menu.setIntroduction(requestDto.getIntroduction());
         if (requestDto.getIsAvailable() != null) {
-            menu.setIsAvailable(MenuStatus.valueOf(requestDto.getIsAvailable()));
+            menu.setIsAvailable(MenuStatus.ONSALE);
         }
         return MenuResponseDto.builder()
                 .menuId(menu.getMenuId())
@@ -83,7 +83,7 @@ public class MenuService {
                 .price(menu.getPrice())
                 .introduction(menu.getIntroduction())
                 .requiredTime(menu.getRequiredTime())
-                .isAvailable(menu.getIsAvailable().name())
+                .isAvailable(menu.getIsAvailable())
                 .build();
     }
 }
