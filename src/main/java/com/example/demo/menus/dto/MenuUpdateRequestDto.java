@@ -1,5 +1,6 @@
 package com.example.demo.menus.dto;
 
+import com.example.demo.menus.entity.MenuStatus;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.*;
@@ -12,5 +13,5 @@ public class MenuUpdateRequestDto {
     private String imgURL;          // 이미지 URL
     private Integer price;
     private String introduction;
-    private String isAvailable;  // 판매중 / 품절 상태
+    private MenuStatus isAvailable;  // 판매중 / 품절 상태
 }
