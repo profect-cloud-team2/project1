@@ -1,7 +1,16 @@
 package com.example.demo.menus.entity;
 
+import lombok.Getter;
+
+@Getter
 public enum MenuStatus {
-    판매중,
-    품절,
-    비활성화
+    ONSALE("판매중"),
+    SOLDOUT("품절"),
+    DISABLE("비활성화");
+
+    private final String description;
+
+    MenuStatus(String description) {
+        this.description = description;
+    }
 }

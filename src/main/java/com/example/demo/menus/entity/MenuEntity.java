@@ -43,7 +43,7 @@ public class MenuEntity {
     private Integer requiredTime;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "isAvailable", nullable = false)
+    @Column(name = "is_available", nullable = false)
     private MenuStatus isAvailable;
 
     @UpdateTimestamp

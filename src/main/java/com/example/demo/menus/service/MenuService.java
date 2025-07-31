@@ -2,6 +2,7 @@ package com.example.demo.menus.service;
 
 import com.example.demo.menus.dto.MenuRequestDto;
 import com.example.demo.menus.dto.MenuResponseDto;
+import com.example.demo.menus.dto.MenuUpdateRequestDto;
 import com.example.demo.menus.entity.MenuEntity;
 import com.example.demo.menus.entity.MenuStatus;
 import com.example.demo.menus.repository.MenuRepository;
@@ -10,6 +11,8 @@ import com.example.demo.store.repository.StoreRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -28,7 +31,7 @@ public class MenuService {
         // 2. 중복 체크 (store와 name으로 중복 여부 확인)
         if (menuRepository.existsByStoreAndName(store, requestDto.getName())) {
             throw new IllegalArgumentException("이미 등록된 메뉴입니다.");
-        }
+}
 
         // 3. MenuEntity 생성
         MenuEntity menu = MenuEntity.builder()
@@ -38,7 +41,7 @@ public class MenuService {
                 .price(requestDto.getPrice())
                 .introduction(requestDto.getIntroduction())
                 //.requiredTime(requestDto.getRequiredTime())
-                .isAvailable(MenuStatus.판매중) // 기본 상태
+                .isAvailable(MenuStatus.ONSALE) // 기본 상태
                 .build();
 
         // 4. 저장
@@ -54,6 +57,33 @@ public class MenuService {
                 .introduction(savedMenu.getIntroduction())
                 .requiredTime(savedMenu.getRequiredTime())
                 .isAvailable(savedMenu.getIsAvailable().name())
+                .build();
+
+    }
+
+
+    public MenuResponseDto updateMenu(UUID menuId, MenuUpdateRequestDto requestDto) {
+        // 1. 메뉴 조회
+        MenuEntity menu = menuRepository.findById(menuId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
+
+        // 2. 값 업데이트 (null 값 무시)
+        if (requestDto.getName() != null) menu.setName(requestDto.getName());
+        if (requestDto.getImgURL() != null) menu.setImgURL(requestDto.getImgURL());
+        if (requestDto.getPrice() != null) menu.setPrice(requestDto.getPrice());
+        if (requestDto.getIntroduction() != null) menu.setIntroduction(requestDto.getIntroduction());
+        if (requestDto.getIsAvailable() != null) {
+            menu.setIsAvailable(MenuStatus.valueOf(requestDto.getIsAvailable()));
+        }
+        return MenuResponseDto.builder()
+                .menuId(menu.getMenuId())
+                .storeId(menu.getStore().getStoreId())
+                .name(menu.getName())
+                .img(menu.getImgURL())
+                .price(menu.getPrice())
+                .introduction(menu.getIntroduction())
+                .requiredTime(menu.getRequiredTime())
+                .isAvailable(menu.getIsAvailable().name())
                 .build();
     }
 }
