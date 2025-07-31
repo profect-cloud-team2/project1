@@ -36,7 +36,7 @@ public class UserEntity {
 	@Column(name = "birthdate", nullable = false)
 	private LocalDate birthdate;
 
-	// @Pattern(regexp = "^\\d{10,11}$")
+	@Pattern(regexp = "^\\d{10,11}$")
 	@Column(name = "phone", nullable = false, length = 255)
 	private String phone;
 
@@ -61,7 +61,7 @@ public class UserEntity {
 	@Column(name = "created_at", nullable = false)
 	private LocalDateTime createdAt;
 
-	@Column(name = "created_by", nullable = false)
+	@Column(name = "created_by")
 	private UUID createdBy;
 
 	@UpdateTimestamp
@@ -106,5 +106,24 @@ public class UserEntity {
 		this.nickname = nickname;
 		this.createdBy = createdBy;
 		this.role = role;
+	}
+
+	public void updateLoginId(String loginId){
+		this.loginId = loginId;
+	}
+	public void updateEmail(String email){
+		this.email = email;
+	}
+	public void updatePhone(String phone){
+		this.phone = phone;
+	}
+	public void updatePassword(String password){
+		this.password = password;
+	}
+	public void updateNickname(String nickname){
+		this.nickname = nickname;
+	}
+	public void updateUpdatedTimestamp(LocalDateTime updatedAt){
+		this.updatedAt = updatedAt;
 	}
 }
