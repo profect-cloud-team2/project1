@@ -4,6 +4,7 @@ import com.example.demo.store.entity.Category;
 import com.example.demo.store.entity.StoreStatus;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,8 +25,8 @@ public class StoreCreateRequestDto {
 	@NotBlank
 	private String businessNum;
 
-	@Schema(description = "카테고리", example = "한식")
-	@NotBlank
+	@Schema(description = "카테고리", example = "KOREAN")
+	@NotNull(message = "카테고리는 필수 입력 값입니다.")
 	private Category category;
 
 	@Schema(description = "도로명 주소", example = "서울시 강남구 테헤란로")
@@ -61,5 +62,6 @@ public class StoreCreateRequestDto {
 	private String introduction;
 
 	@Schema(description = "가게 운영 상태", example = "ACTIVE")
+	@NotNull(message = "가게 운영 상태는 필수 입력 값입니다.")
 	private StoreStatus isAvailable;
 }
