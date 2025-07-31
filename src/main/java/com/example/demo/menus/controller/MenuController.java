@@ -30,4 +30,9 @@ public class MenuController {
         return ResponseEntity.ok(menuService.updateMenu(menuId, requestDto));
     }
 
+    @PatchMapping("/{menuId}/delete")
+    public ResponseEntity<Void> softDeleteMenu(@PathVariable UUID menuId) {
+        menuService.deleteMenu(menuId);
+        return ResponseEntity.noContent().build();
+    }
 }
