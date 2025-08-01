@@ -36,6 +36,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Builder
 public class UserEntity {
 
 	@Id

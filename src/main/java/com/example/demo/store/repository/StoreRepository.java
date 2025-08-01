@@ -14,8 +14,9 @@ public interface StoreRepository extends JpaRepository<StoreEntity, UUID> {
 		String name, String address1, String address2
 	);
   
-		Optional<StoreEntity> findByStoreIdAndDeletedAtIsNull(UUID StoreId);
+	Optional<StoreEntity> findByStoreIdAndDeletedAtIsNull(UUID StoreId);
 
+}
 
 
 

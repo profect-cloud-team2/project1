@@ -35,26 +35,29 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-		http
-			.csrf(AbstractHttpConfigurer::disable)
-			.addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-			// .exceptionHandling(exceptionHandling -> exceptionHandling
-			//     .accessDeniedHandler(jwtAccessDeniedHandler)
-			//     .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-			// )
-			.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-				.requestMatchers("/api/user/signup", "/api/user/login",
-					"/api/user/refresh", "/api/user/logout",
-					"/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-				.anyRequest().authenticated()
-			)
-			.sessionManagement(sessionManagement ->
-				sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			)
-			.with(new JwtSecurityConfig(accessTokenProvider), customizer -> {
-			});
-		return http.build();
-	}
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .accessDeniedHandler(jwtAccessDeniedHandler)
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            )
+            .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+                .requestMatchers(
+                    "/api/user/signup", "/api/user/login",
+                    "/api/user/refresh", "/api/user/logout",
+                    "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(sessionManagement ->
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .with(new JwtSecurityConfig(accessTokenProvider), customizer -> {
+            });
+        return http.build();
+    }
+
 }
