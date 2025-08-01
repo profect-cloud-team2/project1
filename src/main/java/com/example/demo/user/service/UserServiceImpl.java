@@ -49,7 +49,7 @@ public class UserServiceImpl implements UserService {
                 .password(passwordEncoder.encode(request.getPassword()))
                 .nickname(request.getNickname())
                 .createdBy(UUID.randomUUID())
-                .role(UserEntity.UserRole.CUSTOMER)
+                .role(request.getRole())
                 .build();
 
         return userRepository.save(user);
