@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -41,14 +42,16 @@ public class AccessTokenProvider {
 
 	public String createAccessToken(Authentication authentication){
 		String authorities = authentication.getAuthorities().stream()
-			.map(GrantedAuthority::getAuthority)
-			.collect(Collectors.joining(","));
+				.map(auth -> auth.getAuthority().replace("ROLE_",""))
+				.findFirst()
+				.get();
+
 		long now = (new Date()).getTime();
 		Date validity = new Date(now + this.accessTokenExpiration);
 
 		return Jwts.builder()
 			.subject(authentication.getName())
-			.claim(AUTHORITIES_KEY, authorities)
+				.claim("role", authorities)
 			.signWith(key)
 			.expiration(validity)
 			.compact();
@@ -61,10 +64,10 @@ public class AccessTokenProvider {
 			.parseSignedClaims(token)
 			.getPayload();
 
+		String role = claims.get("role", String.class); // JWT의 role claim 추출
+
 		Collection<? extends GrantedAuthority> authorities =
-			Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
-				.map(SimpleGrantedAuthority::new)
-				.collect(Collectors.toList());
+				List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
 		return new UsernamePasswordAuthenticationToken(claims.getSubject(), token, authorities);
 	}
