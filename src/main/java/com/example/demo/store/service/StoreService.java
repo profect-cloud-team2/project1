@@ -25,7 +25,7 @@ public class StoreService {
 	private final UserRepository userRepository;
 
 	public StoreResponseDto createStore(StoreCreateRequestDto dto, String userId) {
-		boolean exists = storeRepository.existsByNameIgnoreCaseAndAddress1IgnoreCaseAndAddress2IgnoreCase(
+		boolean exists = storeRepository.existsByNameIgnoreCaseAndAddress1IgnoreCaseAndAddress2IgnoreCaseAndDeletedAtIsNull(
 			dto.getName().trim(), dto.getAddress1().trim(), dto.getAddress2().trim()
 		);
 		if (exists) {
@@ -37,7 +37,7 @@ public class StoreService {
 			dto.getCategory()
 		);
 
-		UserEntity user = userRepository.findById(UUID.fromString(userId))
+		UserEntity user = userRepository.findByUserIdAndDeletedAtIsNull(UUID.fromString(userId))
 			.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
 		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, desc);
@@ -49,7 +49,7 @@ public class StoreService {
 
 
 	public StoreResponseDto updateStore(UUID storeId, StoreUpdateRequestDto dto) {
-		StoreEntity store = storeRepository.findById(storeId)
+		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("해당 가게가 없습니다."));
 
 		store.updateFromDto(dto);
@@ -88,7 +88,7 @@ public class StoreService {
 		);
 	}
 	public void requestStoreClosure(UUID storeId, String userId, String reason) {
-		StoreEntity store = storeRepository.findById(storeId)
+		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
 		// 소유자 검증
@@ -107,7 +107,7 @@ public class StoreService {
 	}
 	// 폐업 요청 승인 (관리자 권한)
 	public void approveStoreClosure(UUID storeId, String adminId) {
-		StoreEntity store = storeRepository.findById(storeId)
+		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
 		if (store.getIsAvailable() != StoreStatus.CLOSED_REQUESTED) {
@@ -118,7 +118,7 @@ public class StoreService {
 		storeRepository.save(store);
 	}
 	public void rejectStoreClosure(UUID storeId, String adminId, String reason) {
-		StoreEntity store = storeRepository.findById(storeId)
+		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
 		if (store.getIsAvailable() != StoreStatus.CLOSED_REQUESTED) {
@@ -128,10 +128,11 @@ public class StoreService {
 		// 폐업 신청 거절 → 상태 복구
 		store.setIsAvailable(StoreStatus.OPEN);
 		store.setIntroduction("[폐업 거절] " + reason);
+		store.setDeletedAt(null);
 	}
 	// 관리자 강제 삭제
 	public void forceDeleteStore(UUID storeId, String adminId, String reason) {
-		StoreEntity store = storeRepository.findById(storeId)
+		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
 		store.softDelete(StoreStatus.DELETED, reason, UUID.fromString(adminId));

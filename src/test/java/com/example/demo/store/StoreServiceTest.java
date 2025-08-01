@@ -14,6 +14,7 @@ import com.example.demo.user.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 import java.time.LocalDate;
 import java.util.Optional;
@@ -35,7 +36,6 @@ public class StoreServiceTest {
 
 	@Test
 	void 가게등록_및_수정테스트() {
-		// 테스트용 사용자 생성 및 저장
 		UserEntity testUser = UserEntity.builder()
 			.name("테스트유저")
 			.birthdate(LocalDate.of(1995, 1, 1))
@@ -49,7 +49,6 @@ public class StoreServiceTest {
 			.build();
 		testUser = userRepository.save(testUser);
 
-		// 가게 등록용 DTO
 		StoreCreateRequestDto createDto = new StoreCreateRequestDto();
 		createDto.setName("테스트치킨");
 		createDto.setBusinessNum("1234567890");
@@ -63,14 +62,16 @@ public class StoreServiceTest {
 		createDto.setIntroduction("테스트 가게 소개");
 		createDto.setIsAvailable(StoreStatus.OPEN);
 
-		// 가게 등록
 		StoreResponseDto saved = storeService.createStore(createDto, testUser.getUserId().toString());
 		UUID storeId = saved.getStoreId();
 
 		assertThat(saved.getName()).isEqualTo("테스트치킨");
 		assertThat(saved.getAiDescription()).isNotBlank();
 
-		// 수정용 DTO
+		System.out.println("🧪 가게 등록 테스트 결과");
+		System.out.printf(" - 이름: %s%n", saved.getName());
+		System.out.printf(" - AI 소개글: %s%n%n", saved.getAiDescription());
+
 		StoreUpdateRequestDto updateDto = new StoreUpdateRequestDto();
 		updateDto.setName("수정된치킨");
 		updateDto.setCategory(Category.KOREAN);
@@ -83,10 +84,8 @@ public class StoreServiceTest {
 		updateDto.setIntroduction("수정된 가게 소개");
 		updateDto.setIsAvailable(StoreStatus.CLOSED);
 
-		// 가게 수정
 		storeService.updateStore(storeId, updateDto);
 
-		// 검증
 		Optional<StoreEntity> updatedOpt = storeRepository.findById(storeId);
 		assertThat(updatedOpt).isPresent();
 		StoreEntity updated = updatedOpt.get();
@@ -95,5 +94,11 @@ public class StoreServiceTest {
 		assertThat(updated.getPhoneNum()).isEqualTo("01098765432");
 		assertThat(updated.getIntroduction()).isEqualTo("수정된 가게 소개");
 		assertThat(updated.getAiDescription()).isNotBlank();
+
+		System.out.println("🧪 가게 수정 테스트 결과");
+		System.out.printf(" - 수정 이름: %s%n", updated.getName());
+		System.out.printf(" - 전화번호: %s%n", updated.getPhoneNum());
+		System.out.printf(" - 소개글: %s%n", updated.getIntroduction());
+		System.out.printf(" - AI 소개글: %s%n%n", updated.getAiDescription());
 	}
 }
