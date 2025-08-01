@@ -8,6 +8,8 @@ import com.example.demo.menus.entity.MenuStatus;
 import com.example.demo.menus.repository.MenuRepository;
 import com.example.demo.store.entity.StoreEntity;
 import com.example.demo.store.repository.StoreRepository;
+import com.example.demo.user.entity.UserEntity;
+import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,16 +23,17 @@ import java.util.*;
 public class MenuService {
 
     private final MenuRepository menuRepository;
-    private final StoreRepository storeRepository; // Store 조회를 위해 필요
+    private final StoreRepository storeRepository;// Store 조회를 위해 필요
+    private final UserRepository userRepository;
 
     public MenuResponseDto createMenu(MenuRequestDto requestDto) {
 
         // 1. StoreEntity 조회 (존재하지 않으면 예외 발생)
-        StoreEntity store = storeRepository.findById(requestDto.getStoreId())
+        StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(requestDto.getStoreId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
 
         // 2. 중복 체크 (store와 name으로 중복 여부 확인)
-        if (menuRepository.existsByStoreAndName(store, requestDto.getName())) {
+        if (menuRepository.existsByStoreAndNameAndDeletedAtIsNull(store, requestDto.getName())) {
             throw new IllegalArgumentException("이미 등록된 메뉴입니다.");
 }
 
@@ -65,7 +68,7 @@ public class MenuService {
 
     public MenuResponseDto updateMenu(UUID menuId, MenuUpdateRequestDto requestDto) {
         // 1. 메뉴 조회
-        MenuEntity menu = menuRepository.findById(menuId)
+        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
 
         // 2. 값 업데이트 (null 값 무시)
@@ -88,12 +91,21 @@ public class MenuService {
                 .build();
     }
 
-    public void deleteMenu(UUID menuId) {
-        MenuEntity menu = menuRepository.findById(menuId)
+    @Transactional
+    public void softDeleteMenu(UUID menuId, UUID userId) { //String loginId
+
+        //UserEntity user = userRepository.findByLoginId(loginId)
+        //        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 메뉴 조회
+        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
 
-        // 소프트 삭제
+        // 삭제 처리
         menu.setDeletedAt(LocalDateTime.now());
+        menu.setDeletedBy(userId); // UUID 저장
         menuRepository.save(menu);
     }
+
+
 }

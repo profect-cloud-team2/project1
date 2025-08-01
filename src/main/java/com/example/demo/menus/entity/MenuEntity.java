@@ -6,6 +6,7 @@ import lombok.*;
 import java.time.LocalDateTime;
 
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.Where;
 
 import java.util.*;
 
@@ -16,6 +17,7 @@ import java.util.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Where(clause = "deleted_at IS NULL")
 public class MenuEntity {
 
     @Id

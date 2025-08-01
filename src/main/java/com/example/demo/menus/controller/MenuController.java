@@ -4,8 +4,10 @@ import com.example.demo.menus.dto.MenuRequestDto;
 import com.example.demo.menus.dto.MenuResponseDto;
 import com.example.demo.menus.dto.MenuUpdateRequestDto;
 import com.example.demo.menus.service.MenuService;
+import com.example.demo.global.jwt.customJwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
@@ -31,8 +33,10 @@ public class MenuController {
     }
 
     @PatchMapping("/{menuId}/delete")
-    public ResponseEntity<Void> softDeleteMenu(@PathVariable UUID menuId) {
-        menuService.deleteMenu(menuId);
+    public ResponseEntity<Void> softDeleteMenu(@PathVariable UUID menuId, Authentication authentication) {
+        // Authentication에서 userId 추출
+        UUID userId = UUID.fromString(authentication.getName());
+        menuService.softDeleteMenu(menuId, userId);
         return ResponseEntity.noContent().build();
     }
 }

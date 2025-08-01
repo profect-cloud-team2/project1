@@ -79,7 +79,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public FindDetailRes getUserDetailInfo(String userId){
-        UserEntity user = userRepository.findByUserId(UUID.fromString(userId))
+        UserEntity user = userRepository.findByUserIdAndDeletedAtIsNull(UUID.fromString(userId))
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         return FindDetailRes.builder()
@@ -93,7 +93,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public EditDetailInfoRes editUserDetailInfo(String userId, EditDetailInfoReq req){
-        UserEntity user = userRepository.findByUserId(UUID.fromString(userId))
+        UserEntity user = userRepository.findByUserIdAndDeletedAtIsNull(UUID.fromString(userId))
             .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         isValid(req.getLoginId(), req.getEmail(), req.getNickname(), req.getPassword(), req.getRePassword());
