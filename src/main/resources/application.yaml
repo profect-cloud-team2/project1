@@ -40,3 +40,9 @@ logging:
   level:
     org.springframework.security: DEBUG
     com.example.demo: DEBUG
+
+payment:
+  toss:
+    api-url: ${TOSS_API_URL}
+    secret-key: ${TOSS_SECRET_KEY}
+    client-key: ${TOSS_CLIENT_KEY}

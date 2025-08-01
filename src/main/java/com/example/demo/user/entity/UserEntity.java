@@ -1,24 +1,36 @@
 package com.example.demo.user.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import org.hibernate.annotations.Where;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Pattern;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
 @Entity
 @Table(name = "p_user_info"
-       // , indexes = {
-       //     @Index(name = "idx_login_id", columnList = "login_id"),
-       //     @Index(name = "idx_email", columnList = "email")
-       // }
-	   )
+	// , indexes = {
+	//     @Index(name = "idx_login_id", columnList = "login_id"),
+	//     @Index(name = "idx_email", columnList = "email")
+	// }
+)
 // @Where(clause = "deleted_at IS NULL")
 @Getter
 @Builder
@@ -84,20 +96,21 @@ public class UserEntity {
 
 	@Getter
 	public enum UserRole {
-		ADMIN("관리자"), 
-		CUSTOMER("고객"), 
+		ADMIN("관리자"),
+		CUSTOMER("고객"),
 		OWNER("점주");
-		
+
 		private final String description;
-		
+
 		UserRole(String description) {
 			this.description = description;
 		}
 
 	}
+
 	@Builder
 	public UserEntity(String name, LocalDate birthdate, String phone, String email, String loginId, String password,
-					  String nickname, UUID createdBy, UserRole role) {
+		String nickname, UUID createdBy, UserRole role) {
 		this.name = name;
 		this.birthdate = birthdate;
 		this.phone = phone;
@@ -109,22 +122,27 @@ public class UserEntity {
 		this.role = role;
 	}
 
-	public void updateLoginId(String loginId){
+	public void updateLoginId(String loginId) {
 		this.loginId = loginId;
 	}
-	public void updateEmail(String email){
+
+	public void updateEmail(String email) {
 		this.email = email;
 	}
-	public void updatePhone(String phone){
+
+	public void updatePhone(String phone) {
 		this.phone = phone;
 	}
-	public void updatePassword(String password){
+
+	public void updatePassword(String password) {
 		this.password = password;
 	}
-	public void updateNickname(String nickname){
+
+	public void updateNickname(String nickname) {
 		this.nickname = nickname;
 	}
-	public void updateUpdatedTimestamp(LocalDateTime updatedAt){
+
+	public void updateUpdatedTimestamp(LocalDateTime updatedAt) {
 		this.updatedAt = updatedAt;
 	}
 }
