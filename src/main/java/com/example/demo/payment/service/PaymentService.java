@@ -14,7 +14,7 @@ import com.example.demo.payment.dto.DirectPaymentRes;
 public interface PaymentService {
 	DirectPaymentRes requestDirectPayment(DirectPaymentReq req) throws IOException;
 
-	CheckoutPaymentRes requestCheckoutPayment(CheckoutPaymentReq req) throws IOException;
+	CheckoutPaymentRes requestCheckoutPayment(CheckoutPaymentReq req, UUID userId) throws IOException;
 
 	ConfirmPaymentRes confirmPayment(String paymentKey, UUID orderId, int amout) throws IOException;
 

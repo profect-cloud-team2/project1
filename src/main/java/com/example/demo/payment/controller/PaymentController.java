@@ -3,7 +3,9 @@ package com.example.demo.payment.controller;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -15,7 +17,6 @@ import com.example.demo.payment.dto.CancelPaymentReq;
 import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
-import com.example.demo.payment.dto.ConfirmPaymentRes;
 import com.example.demo.payment.dto.DirectPaymentReq;
 import com.example.demo.payment.dto.DirectPaymentRes;
 import com.example.demo.payment.service.PaymentService;
@@ -38,8 +39,10 @@ public class PaymentController {
 
 	//인증결제
 	@PostMapping("/ready")
-	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody CheckoutPaymentReq req) throws IOException {
-		CheckoutPaymentRes response = paymentService.requestCheckoutPayment(req);
+	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody CheckoutPaymentReq req,
+		@AuthenticationPrincipal String userIdStr) throws IOException {
+		UUID userId = UUID.fromString(userIdStr);
+		CheckoutPaymentRes response = paymentService.requestCheckoutPayment(req, userId);
 		return ResponseEntity.ok(response);
 	}
 
@@ -51,14 +54,20 @@ public class PaymentController {
 	}
 
 	// 결제 성공
-	@GetMapping("/success")
-	public ResponseEntity<ConfirmPaymentRes> confirmPayment(
+	@GetMapping("/payment/success")
+	public ResponseEntity<String> paymentSuccess(
+		@RequestParam String orderId,
 		@RequestParam String paymentKey,
-		@RequestParam UUID orderId,
-		@RequestParam int amount) throws IOException {
-
-		ConfirmPaymentRes result = paymentService.confirmPayment(paymentKey, orderId, amount);
-		return ResponseEntity.ok(result);
+		@RequestParam int amount,
+		@AuthenticationPrincipal String userIdStr) {
+		try {
+			UUID userId = UUID.fromString(userIdStr);
+			paymentService.confirmPaymentAndSaveOrder(paymentKey, UUID.fromString(orderId), amount, userId);
+			return ResponseEntity.ok("결제가 성공 및 주문 저장 완료");
+		} catch (Exception e) {
+			e.printStackTrace();
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결제 처리 중 에러가 발생했습니다.");
+		}
 	}
 
 	// 결제 실패

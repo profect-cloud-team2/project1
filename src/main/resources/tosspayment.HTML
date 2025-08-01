@@ -1,59 +1,13 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="utf-8"/>
+    <meta charset="UTF-8">
     <title>결제하기</title>
     <script src="https://js.tosspayments.com/v1/payment"></script>
+    <script src="payment.js" defer></script> <!-- 이 부분이 핵심 -->
 </head>
 <body>
-<section>
-    <h2>Toss 인증결제 테스트</h2>
-    <div>
-        <label>결제 금액: </label>
-        <input type="number" id="amount" value="10000" min="100">
-        <span>원</span>
-    </div>
-    <div>
-        <label>주문명: </label>
-        <input type="text" id="orderName" value="아메리카노 1잔">
-    </div>
-    <div>
-        <label>고객 이메일: </label>
-        <input type="email" id="customerEmail" value="gildong@example.com">
-    </div>
-    <br>
-    <button id="payment-button">결제하기</button>
-</section>
-
-<script>
-    var clientKey = 'test_ck_Ba5PzR0Arn9bqEYORBDXVvmYnNeD'
-    var tossPayments = TossPayments(clientKey)
-
-    var button = document.getElementById('payment-button')
-    button.addEventListener('click', function () {
-        // 동적으로 값 가져오기
-        var amount = parseInt(document.getElementById('amount').value)
-        var orderName = document.getElementById('orderName').value
-        var customerEmail = document.getElementById('customerEmail').value
-        var orderId = generateOrderId()
-
-        console.log('결제 요청:', {amount, orderId, orderName, customerEmail})
-
-        tossPayments.requestPayment('CARD', {
-            amount: amount,
-            orderId: orderId,
-            orderName: orderName,
-            customerName: '홍길동',
-            customerEmail: customerEmail,
-            successUrl: 'http://localhost:8080/api/payment/success',
-            failUrl: 'http://localhost:8080/api/payment/fail'
-        })
-    })
-
-    // UUID 생성 함수
-    function generateOrderId() {
-        return 'order_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9)
-    }
-</script>
+<!-- 결제 UI... -->
 </body>
 </html>
