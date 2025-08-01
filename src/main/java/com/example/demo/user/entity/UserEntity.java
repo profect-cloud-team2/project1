@@ -21,6 +21,7 @@ import java.util.UUID;
 	   )
 // @Where(clause = "deleted_at IS NULL")
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserEntity {
