@@ -1,18 +1,34 @@
 package com.example.demo.store.entity;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.UUID;
+
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
+
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
 import com.example.demo.user.entity.UserEntity;
-import jakarta.persistence.*;
-import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-import java.time.LocalTime;
 
-
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.UUID;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Entity
 @Data
@@ -54,7 +70,7 @@ public class StoreEntity {
 	@Column(precision = 9, scale = 6)
 	private BigDecimal store_longitude;
 
-	@Column(name = "phone_num",nullable = false, length = 11)
+	@Column(name = "phone_num", nullable = false, length = 11)
 	private String phoneNum;
 
 	@Column(name = "introduction", nullable = true)
@@ -72,7 +88,7 @@ public class StoreEntity {
 	@Column(name = "ai_description")
 	private String aiDescription;
 
-	@Column(name="total_profit")
+	@Column(name = "total_profit")
 	private Float totalProfit;
 
 	@Column(name = "order_count")
