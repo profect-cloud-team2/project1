@@ -1,8 +1,10 @@
 package com.example.demo.store.service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.example.demo.search.dto.SearchResultDto;
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreResponseDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
@@ -14,6 +16,11 @@ import com.example.demo.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -23,6 +30,22 @@ public class StoreService {
 	private final StoreRepository storeRepository;
 	private final StoreAiService storeAiService;
 	private final UserRepository userRepository;
+
+	public Page<SearchResultDto> search(String keyword, int page, int size, String sortBy) {
+		Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+		if ("modified".equalsIgnoreCase(sortBy)) {
+			sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+		}
+
+		if (size != 10 && size != 30 && size != 50) {
+			size = 10;
+		}
+
+		Pageable pageable = PageRequest.of(page, size, sort);
+		Page<StoreEntity> resultPage = storeRepository.searchVisibleStoresByKeyword(keyword, pageable);
+
+		return resultPage.map(SearchResultDto::fromEntity);
+	}
 
 	public StoreResponseDto createStore(StoreCreateRequestDto dto, String userId) {
 		boolean exists = storeRepository.existsByNameIgnoreCaseAndAddress1IgnoreCaseAndAddress2IgnoreCaseAndDeletedAtIsNull(

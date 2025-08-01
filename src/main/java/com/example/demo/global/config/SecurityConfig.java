@@ -51,7 +51,8 @@ public class SecurityConfig {
 					"/swagger-ui/**", "/swagger-ui.html",
 					"/v3/api-docs/**", "/swagger-resources/**",
 					"/swagger-resources", "/configuration/**",
-					"/webjars/**"
+					"/webjars/**","/api/search/**",   // 🔍 검색 관련 URI는 모두 허용
+					"/api/public/**"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

@@ -3,11 +3,14 @@ package com.example.demo.store.entity;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
+import com.example.demo.menus.entity.MenuEntity;
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
 import com.example.demo.user.entity.UserEntity;
@@ -22,6 +25,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -57,6 +61,9 @@ public class StoreEntity {
 	@Enumerated(EnumType.STRING)
 	@Column(name = "category", nullable = false)
 	private Category category;
+
+	@OneToMany(mappedBy = "store", fetch = FetchType.LAZY)
+	private List<MenuEntity> menus = new ArrayList<>();
 
 	@Column(name = "address1", nullable = false, length = 255)
 	private String address1;

@@ -1,5 +1,8 @@
 package com.example.demo.global.exception;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -9,6 +12,7 @@ import com.example.demo.admin.exception.ReportAlreadyDeletedException;
 import com.example.demo.admin.exception.ReportNotFoundException;
 import com.example.demo.admin.exception.SanctionNotFoundException;
 import com.example.demo.admin.exception.UnauthorizedReportAccessException;
+import com.example.demo.search.exception.SearchException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -44,5 +48,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(SanctionNotFoundException.class)
     public ResponseEntity<String> handleSanctionNotFound(SanctionNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+    }
+    @ExceptionHandler(SearchException.class)
+    public ResponseEntity<Map<String, String>> handleSearchException(SearchException e) {
+        Map<String, String> body = new HashMap<>();
+        body.put("error", e.getMessage());
+        return ResponseEntity.badRequest().body(body);
     }
 }
