@@ -8,15 +8,18 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.example.demo.favorite.dto.FavoriteCountResponseDto;
 import com.example.demo.favorite.dto.FavoriteResponseDto;
 import com.example.demo.favorite.entity.FavoriteEntity;
 import com.example.demo.favorite.repository.FavoriteRepository;
 import com.example.demo.store.entity.StoreEntity;
+import com.example.demo.store.repository.StoreRepository;
 import com.example.demo.store.service.StoreService;
 import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
@@ -28,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class FavoriteService {
 	private final FavoriteRepository favoriteRepository;
 	private final UserRepository userRepository;
+	private final StoreRepository storeRepository;
 	private final StoreService storeService;
 
 	// 찜한 가게 1건 조회
@@ -101,5 +105,24 @@ public class FavoriteService {
 			// favorite.setUpdatedBy(uid);
 		}
 		// 변경이 감지되어 저장됨 (JPA dirty-checking)
+	}
+
+	/**
+	 * (사장 전용) 본인이 소유한 storeId의 찜 수를 조회.
+	 * 소유가 아니면 AccessDeniedException 발생
+	 */
+	@Transactional
+	public long getFavoriteCount(String userId, UUID storeId) {
+		UUID uid = UUID.fromString(userId);
+		// UUID storeid = UUID.fromString(storeId);
+		// 1) 소유권 확인
+		boolean isOwner = storeRepository.existsByStoreIdAndUserUserId(storeId, uid);
+		if (!isOwner) {
+			throw new AccessDeniedException(
+				String.format("userId=%s 가 storeId=%s 의 소유자가 아닙니다.", userId, storeId)
+			);
+		}
+		// 2) 찜 개수 조회 (soft-delete 고려)
+		return favoriteRepository.countByStoreStoreIdAndDeletedAtIsNull(storeId);
 	}
 }

@@ -1,5 +1,7 @@
 package com.example.demo.favorite.controller;
 
+import java.util.UUID;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.favorite.dto.FavoriteResponseDto;
+import com.example.demo.favorite.dto.FavoriteCountResponseDto;
 import com.example.demo.favorite.service.FavoriteService;
 
 @RestController
@@ -36,7 +39,7 @@ public class FavoriteController {
 	}
 
 	/**
-	 * 1) GET /api/favorites/list
+	 * 1) GET /api/favorite/list
 	 *    – JWT 검사 → USER 권한 체크 → @AuthenticationPrincipal 으로 userId 주입
 	 */
 	// 찜한 가게 목록 조회 (페이징)
@@ -52,7 +55,7 @@ public class FavoriteController {
 	}
 
 	/**
-	 * 2) POST /api/favorites/{storeId}
+	 * 2) POST /api/favorite/{storeId}
 	 *    – JWT 검사 → USER 권한 체크 → @AuthenticationPrincipal 으로 userId 주입
 	 */
 	// 가게 찜<->취소 (토글)
@@ -65,6 +68,17 @@ public class FavoriteController {
 		favoriteService.toggleFavorite(userId, storeId);
 		// 204 No Content: body 없이 “성공” 알림
 		return ResponseEntity.noContent().build();
+	}
+
+	// 3) 사장이 본인 특정 가게 찜 수 조회
+	@PreAuthorize("hasRole('OWNER')")
+	@GetMapping("/{storeId}/count")
+	public ResponseEntity<FavoriteCountResponseDto> getStoreFavoriteCount(
+		@AuthenticationPrincipal String userId,
+		@PathVariable UUID storeId
+	) {
+		long count = favoriteService.getFavoriteCount(userId, storeId);
+		return ResponseEntity.ok(new FavoriteCountResponseDto(storeId, count));
 	}
 
 }

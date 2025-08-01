@@ -38,4 +38,13 @@ public interface FavoriteRepository extends JpaRepository<FavoriteEntity, UUID> 
 		UUID userId,
 		UUID storeId
 	);
+
+	/**
+	 * 특정 가게(storeId)를 찜한 총 개수(삭제되지 않은 것만)
+	 */
+	long countByStoreStoreIdAndDeletedAtIsNull(
+		UUID storeId
+	);
+
+
 }
