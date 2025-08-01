@@ -1,6 +1,7 @@
 package com.example.demo.favorite.repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -14,7 +15,7 @@ import com.example.demo.favorite.entity.FavoriteEntity;
 import com.example.demo.user.entity.UserEntity;
 
 @Repository
-public interface FavoriteRepository extends JpaRepository<FavoriteEntity, String> {
+public interface FavoriteRepository extends JpaRepository<FavoriteEntity, UUID> {
 	// 찜한 가게 1건 조회
 	FavoriteEntity findByUserUserIdAndDeletedAtIsNull(UUID userId);
 
@@ -32,4 +33,18 @@ public interface FavoriteRepository extends JpaRepository<FavoriteEntity, String
 		@Param("userId") UUID userId,
 		Pageable pageable
 	);
+
+	Optional<FavoriteEntity> findByUserUserIdAndStoreStoreId(
+		UUID userId,
+		UUID storeId
+	);
+
+	/**
+	 * 특정 가게(storeId)를 찜한 총 개수(삭제되지 않은 것만)
+	 */
+	long countByStoreStoreIdAndDeletedAtIsNull(
+		UUID storeId
+	);
+
+
 }

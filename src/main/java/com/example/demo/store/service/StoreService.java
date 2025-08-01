@@ -1,5 +1,6 @@
 package com.example.demo.store.service;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import com.example.demo.store.dto.StoreCreateRequestDto;
@@ -60,6 +61,10 @@ public class StoreService {
 
 		StoreEntity updated = storeRepository.save(store);
 		return toResponseDto(updated);
+	}
+
+	public Optional<StoreEntity> findById(UUID storeId) {
+		return storeRepository.findById(storeId);
 	}
 
 	private StoreResponseDto toResponseDto(StoreEntity entity) {
