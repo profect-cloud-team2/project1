@@ -27,8 +27,17 @@ public class customJwtFilter extends GenericFilterBean {
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
 		FilterChain filterChain) throws IOException, ServletException {
 		HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
-		String jwt = resolveToken(httpServletRequest);
 		String requestURI = httpServletRequest.getRequestURI();
+
+		if (requestURI.startsWith("/swagger") ||
+			requestURI.startsWith("/v3/api-docs") ||
+			requestURI.startsWith("/swagger-ui") ||
+			requestURI.startsWith("/webjars") ||
+			requestURI.startsWith("/configuration")) {
+			filterChain.doFilter(servletRequest, servletResponse);
+			return;
+		}
+		String jwt = resolveToken(httpServletRequest);
 
 		if (StringUtils.hasText(jwt) && accessTokenProvider.validateToken(jwt)) {
 			Authentication authentication = accessTokenProvider.getAuthentication(jwt);
