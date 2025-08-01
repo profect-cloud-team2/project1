@@ -42,9 +42,7 @@ public class AccessTokenProvider {
 
 	public String createAccessToken(Authentication authentication){
 		String authorities = authentication.getAuthorities().stream()
-			//.map(GrantedAuthority::getAuthority)
 				.map(auth -> auth.getAuthority().replace("ROLE_",""))
-			//.collect(Collectors.joining(","));
 				.findFirst()
 				.get();
 
@@ -54,7 +52,6 @@ public class AccessTokenProvider {
 		return Jwts.builder()
 			.subject(authentication.getName())
 				.claim("role", authorities)
-			//.claim(AUTHORITIES_KEY, authorities)
 			.signWith(key)
 			.expiration(validity)
 			.compact();
@@ -68,11 +65,6 @@ public class AccessTokenProvider {
 			.getPayload();
 
 		String role = claims.get("role", String.class); // JWT의 role claim 추출
-
-//		Collection<? extends GrantedAuthority> authorities =
-//			Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
-//				.map(SimpleGrantedAuthority::new)
-//				.collect(Collectors.toList());
 
 		Collection<? extends GrantedAuthority> authorities =
 				List.of(new SimpleGrantedAuthority("ROLE_" + role));
