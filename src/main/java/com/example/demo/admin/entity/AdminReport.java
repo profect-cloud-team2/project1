@@ -45,7 +45,7 @@ public class AdminReport {
 	private UserEntity reported;
 
 	@Column(name = "report_type", nullable = false)
-	private String reportType; // USER / STORE / REVIEW
+	private String reportType; // CUSTOMER / STORE / REVIEW
 
 	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
 	private String content;

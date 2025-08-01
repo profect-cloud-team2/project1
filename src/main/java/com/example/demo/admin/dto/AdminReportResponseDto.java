@@ -1,7 +1,6 @@
 package com.example.demo.admin.dto;
 
 import com.example.demo.admin.entity.AdminReport;
-import com.example.demo.user.entity.UserEntity;
 
 import lombok.Builder;
 import lombok.Getter;
