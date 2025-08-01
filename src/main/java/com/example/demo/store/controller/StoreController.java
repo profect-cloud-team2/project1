@@ -48,6 +48,7 @@ public class StoreController {
 			return ResponseEntity.status(409).body(e.getMessage());
 		}
 	}
+
 	@Operation(summary = "가게 수정", description = "점주가 기존 가게 정보를 수정합니다.",
 		responses = {
 			@ApiResponse(responseCode = "200", description = "수정 성공"),

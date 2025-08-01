@@ -1,12 +1,5 @@
 package com.example.demo.global.config;
 
-import com.example.demo.global.jwt.AccessTokenProvider;
-import com.example.demo.global.jwt.JwtAccessDeniedHandler;
-import com.example.demo.global.jwt.JwtAuthenticationEntryPoint;
-import com.example.demo.global.jwt.JwtSecurityConfig;
-
-import lombok.RequiredArgsConstructor;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -20,20 +13,27 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.filter.CorsFilter;
 
+import com.example.demo.global.jwt.AccessTokenProvider;
+import com.example.demo.global.jwt.JwtAccessDeniedHandler;
+import com.example.demo.global.jwt.JwtAuthenticationEntryPoint;
+import com.example.demo.global.jwt.JwtSecurityConfig;
+
+import lombok.RequiredArgsConstructor;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final AccessTokenProvider accessTokenProvider;
-    private final CorsFilter corsFilter;
-    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
-    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+	private final AccessTokenProvider accessTokenProvider;
+	private final CorsFilter corsFilter;
+	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+	private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+	@Bean
+	public PasswordEncoder passwordEncoder() {
+		return new BCryptPasswordEncoder();
+	}
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -59,4 +59,5 @@ public class SecurityConfig {
             });
         return http.build();
     }
+
 }

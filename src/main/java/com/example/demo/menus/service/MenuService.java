@@ -8,10 +8,13 @@ import com.example.demo.menus.entity.MenuStatus;
 import com.example.demo.menus.repository.MenuRepository;
 import com.example.demo.store.entity.StoreEntity;
 import com.example.demo.store.repository.StoreRepository;
+import com.example.demo.user.entity.UserEntity;
+import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.*;
 
 @Service
@@ -20,16 +23,17 @@ import java.util.*;
 public class MenuService {
 
     private final MenuRepository menuRepository;
-    private final StoreRepository storeRepository; // Store 조회를 위해 필요
+    private final StoreRepository storeRepository;// Store 조회를 위해 필요
+    private final UserRepository userRepository;
 
     public MenuResponseDto createMenu(MenuRequestDto requestDto) {
 
         // 1. StoreEntity 조회 (존재하지 않으면 예외 발생)
-        StoreEntity store = storeRepository.findById(requestDto.getStoreId())
+        StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(requestDto.getStoreId())
                 .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
 
         // 2. 중복 체크 (store와 name으로 중복 여부 확인)
-        if (menuRepository.existsByStoreAndName(store, requestDto.getName())) {
+        if (menuRepository.existsByStoreAndNameAndDeletedAtIsNull(store, requestDto.getName())) {
             throw new IllegalArgumentException("이미 등록된 메뉴입니다.");
 }
 
@@ -40,7 +44,7 @@ public class MenuService {
                 .imgURL(requestDto.getImg())   // 엔티티 필드명에 맞게 수정
                 .price(requestDto.getPrice())
                 .introduction(requestDto.getIntroduction())
-                //.requiredTime(requestDto.getRequiredTime())
+                .requiredTime(requestDto.getRequiredTime())
                 .isAvailable(MenuStatus.ONSALE) // 기본 상태
                 .build();
 
@@ -56,7 +60,7 @@ public class MenuService {
                 .price(savedMenu.getPrice())
                 .introduction(savedMenu.getIntroduction())
                 .requiredTime(savedMenu.getRequiredTime())
-                .isAvailable(savedMenu.getIsAvailable().name())
+                .isAvailable(savedMenu.getIsAvailable())
                 .build();
 
     }
@@ -64,7 +68,7 @@ public class MenuService {
 
     public MenuResponseDto updateMenu(UUID menuId, MenuUpdateRequestDto requestDto) {
         // 1. 메뉴 조회
-        MenuEntity menu = menuRepository.findById(menuId)
+        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
 
         // 2. 값 업데이트 (null 값 무시)
@@ -73,7 +77,7 @@ public class MenuService {
         if (requestDto.getPrice() != null) menu.setPrice(requestDto.getPrice());
         if (requestDto.getIntroduction() != null) menu.setIntroduction(requestDto.getIntroduction());
         if (requestDto.getIsAvailable() != null) {
-            menu.setIsAvailable(MenuStatus.valueOf(requestDto.getIsAvailable()));
+            menu.setIsAvailable(MenuStatus.ONSALE);
         }
         return MenuResponseDto.builder()
                 .menuId(menu.getMenuId())
@@ -83,7 +87,25 @@ public class MenuService {
                 .price(menu.getPrice())
                 .introduction(menu.getIntroduction())
                 .requiredTime(menu.getRequiredTime())
-                .isAvailable(menu.getIsAvailable().name())
+                .isAvailable(menu.getIsAvailable())
                 .build();
     }
+
+    @Transactional
+    public void softDeleteMenu(UUID menuId, UUID userId) { //String loginId
+
+        //UserEntity user = userRepository.findByLoginId(loginId)
+        //        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        // 메뉴 조회
+        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
+
+        // 삭제 처리
+        menu.setDeletedAt(LocalDateTime.now());
+        menu.setDeletedBy(userId); // UUID 저장
+        menuRepository.save(menu);
+    }
+
+
 }
