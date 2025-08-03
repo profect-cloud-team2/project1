@@ -79,4 +79,10 @@ public class OrderEntity {
 		this.deletedAt = LocalDateTime.now();
 		this.deletedBy = deletedBy;
 	}
+
+	public void updateStatus(OrderStatus newStatus, UUID updatedBy) {
+		this.orderStatus = newStatus;
+		this.updatedAt = LocalDateTime.now();
+		this.updatedBy = updatedBy;
+	}
 }
