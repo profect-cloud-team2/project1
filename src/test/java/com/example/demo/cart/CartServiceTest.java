@@ -1,8 +1,9 @@
 package com.example.demo.cart;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
 
 import java.util.Arrays;
 import java.util.List;
@@ -26,10 +27,9 @@ class CartServiceTest {
 	@Test
 	@DisplayName("장바구니에 메뉴 추가 성공")
 	void addItemToCart_Success() {
-		// given
 		CartItemAddReq request = new CartItemAddReq();
 		request.setStoreId(UUID.randomUUID());
-
+		
 		CartItemAddReq.MenuItem menuItem = new CartItemAddReq.MenuItem();
 		menuItem.setMenuId(UUID.randomUUID());
 		menuItem.setQuantity(2);
@@ -60,7 +60,6 @@ class CartServiceTest {
 		doNothing().when(cartService).updateQuantity(cartItemId, quantity);
 
 		cartService.updateQuantity(cartItemId, quantity);
-
 	}
 
 	@Test
@@ -71,6 +70,5 @@ class CartServiceTest {
 		doNothing().when(cartService).deleteItem(cartItemId);
 
 		cartService.deleteItem(cartItemId);
-
 	}
 }

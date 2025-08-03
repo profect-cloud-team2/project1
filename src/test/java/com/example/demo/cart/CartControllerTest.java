@@ -1,9 +1,13 @@
 package com.example.demo.cart;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.Mockito.doNothing;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -44,7 +48,7 @@ class CartControllerTest {
 	void addItemToCart_Success() throws Exception {
 		CartItemAddReq request = new CartItemAddReq();
 		request.setStoreId(UUID.randomUUID());
-
+		
 		CartItemAddReq.MenuItem menuItem = new CartItemAddReq.MenuItem();
 		menuItem.setMenuId(UUID.randomUUID());
 		menuItem.setQuantity(2);
@@ -83,7 +87,7 @@ class CartControllerTest {
 
 	@Test
 	@DisplayName("장바구니 아이템 삭제 성공")
-	void deleteItem_Success() throws Exception {
+	void removeCartItem_Success() throws Exception {
 		UUID cartItemId = UUID.randomUUID();
 
 		doNothing().when(cartService).deleteItem(cartItemId);
