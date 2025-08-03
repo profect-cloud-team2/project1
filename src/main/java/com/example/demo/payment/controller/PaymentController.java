@@ -3,6 +3,7 @@ package com.example.demo.payment.controller;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -30,6 +31,9 @@ public class PaymentController {
 
 	private final PaymentService paymentService;
 
+	@Value("${payment.toss.client-key}")
+	private String clientKey;
+
 	//즉시결제
 	@PostMapping("/direct")
 	public ResponseEntity<DirectPaymentRes> directPay(@RequestBody DirectPaymentReq req) throws IOException {
@@ -54,19 +58,36 @@ public class PaymentController {
 	}
 
 	// 결제 성공
-	@GetMapping("/payment/success")
+	@GetMapping("/success")
 	public ResponseEntity<String> paymentSuccess(
 		@RequestParam String orderId,
 		@RequestParam String paymentKey,
 		@RequestParam int amount,
 		@AuthenticationPrincipal String userIdStr) {
+		
+		System.out.println("=== 결제 성공 처리 시작 ===");
+		System.out.println("orderId: " + orderId);
+		System.out.println("paymentKey: " + paymentKey);
+		System.out.println("amount: " + amount);
+		System.out.println("userIdStr: " + userIdStr);
+		
 		try {
+			// 익명 사용자 처리
+			if ("anonymousUser".equals(userIdStr) || userIdStr == null) {
+				System.out.println("익명 사용자로 결제 처리");
+				paymentService.confirmPaymentAndSaveOrderForAnonymous(paymentKey, orderId, amount);
+				return ResponseEntity.ok("결제가 성공하고 주문이 저장되었습니다!");
+			}
+			
+			System.out.println("인증된 사용자로 결제 처리");
 			UUID userId = UUID.fromString(userIdStr);
-			paymentService.confirmPaymentAndSaveOrder(paymentKey, UUID.fromString(orderId), amount, userId);
+			paymentService.confirmPaymentAndSaveOrder(paymentKey, orderId, amount, userId);
 			return ResponseEntity.ok("결제가 성공 및 주문 저장 완료");
 		} catch (Exception e) {
+			System.err.println("결제 처리 오류: " + e.getMessage());
 			e.printStackTrace();
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결제 처리 중 에러가 발생했습니다.");
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+				.body("결제 처리 중 에러가 발생했습니다: " + e.getMessage());
 		}
 	}
 
@@ -74,5 +95,11 @@ public class PaymentController {
 	@GetMapping("/fail")
 	public ResponseEntity<String> fail() {
 		return ResponseEntity.badRequest().body("결제에 실패했습니다.");
+	}
+
+	// 클라이언트 키 조회
+	@GetMapping("/client-key")
+	public ResponseEntity<String> getClientKey() {
+		return ResponseEntity.ok(clientKey);
 	}
 }

@@ -17,6 +17,12 @@ import com.example.demo.cart.repository.CartItemRepository;
 import com.example.demo.cart.repository.CartRepository;
 import com.example.demo.menus.entity.MenuEntity;
 import com.example.demo.menus.repository.MenuRepository;
+import com.example.demo.order.entity.OrderEntity;
+import com.example.demo.order.entity.OrderItemEntity;
+import com.example.demo.order.entity.OrderStatus;
+import com.example.demo.order.repository.OrderItemRepository;
+import com.example.demo.order.repository.OrderRepository;
+import com.example.demo.store.repository.StoreRepository;
 import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
 
@@ -31,12 +37,20 @@ public class CartServiceImpl implements CartService {
 	private final MenuRepository menuRepository;
 	private final UserRepository userRepository;
 	private final CartItemRepository cartItemRepository;
+	private final OrderRepository orderRepository;
+	private final OrderItemRepository orderItemRepository;
+	private final StoreRepository storeRepository;
 
 	private UUID getCurrentUserId() {
 		String userIdStr = SecurityContextHolder
 			.getContext()
 			.getAuthentication()
 			.getName();
+		
+		if ("anonymousUser".equals(userIdStr) || userIdStr == null) {
+			return null;
+		}
+		
 		return UUID.fromString(userIdStr);
 	}
 
@@ -74,10 +88,10 @@ public class CartServiceImpl implements CartService {
 			MenuEntity menu = menuRepository.findById(item.getMenuId())
 				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
 
-			cartItemRepository.findByCart_CartIdAndMenu_MenuId(cart.getCartId(), item.getMenuId())
+			cartItemRepository.findByCartCartIdAndMenuMenuId(cart.getCartId(), item.getMenuId())
 				.ifPresentOrElse(existing -> {
 					existing.setQuantity(existing.getQuantity() + item.getQuantity());
-					existing.setPrice(item.getPrice());
+					existing.setPrice(menu.getPrice()); // DB의 실제 가격 사용
 					existing.setUpdatedAt(LocalDateTime.now());
 					existing.setUpdatedBy(userId);
 					cartItemRepository.save(existing);
@@ -86,7 +100,7 @@ public class CartServiceImpl implements CartService {
 					newItem.setCart(cart);
 					newItem.setMenu(menu);
 					newItem.setQuantity(item.getQuantity());
-					newItem.setPrice(item.getPrice());
+					newItem.setPrice(menu.getPrice()); // DB의 실제 가격 사용
 					newItem.setCreatedAt(LocalDateTime.now());
 					newItem.setCreatedBy(userId);
 					cartItemRepository.save(newItem);
@@ -98,6 +112,10 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public List<CartRes> getMyCart() {
 		UUID userId = getCurrentUserId();
+		
+		if (userId == null) {
+			throw new IllegalArgumentException("로그인이 필요합니다.");
+		}
 
 		UserEntity user = userRepository.findById(userId)
 			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
@@ -145,4 +163,44 @@ public class CartServiceImpl implements CartService {
 		cartItemRepository.deleteById(cartItemId);
 	}
 
+	@Transactional
+	public UUID createOrderFromCart(List<UUID> cartItemIds, UUID storeId, String requestMessage, UUID userId) {
+		// 장바구니 아이템들 조회
+		List<CartItemEntity> cartItems = cartItemRepository.findAllById(cartItemIds);
+		
+		// 총 금액 계산
+		int totalPrice = cartItems.stream()
+			.mapToInt(item -> item.getPrice() * item.getQuantity())
+			.sum();
+
+		// 주문 생성
+		OrderEntity order = OrderEntity.builder()
+			.orderId(UUID.randomUUID())
+			.user(userRepository.findById(userId).orElseThrow())
+			.store(storeRepository.findById(storeId).orElseThrow())
+			.totalPrice(totalPrice)
+			.requestMessage(requestMessage)
+			.orderStatus(OrderStatus.주문접수)
+			.createdAt(LocalDateTime.now())
+			.createdBy(userId)
+			.build();
+
+		orderRepository.save(order);
+
+		// 주문 아이템들 생성
+		for (CartItemEntity cartItem : cartItems) {
+			OrderItemEntity orderItem = OrderItemEntity.builder()
+				.order(order)
+				.menu(cartItem.getMenu())
+				.quantity(cartItem.getQuantity())
+				.price(cartItem.getPrice())
+				.build();
+			orderItemRepository.save(orderItem);
+		}
+
+		// 장바구니 아이템들 삭제
+		cartItemRepository.deleteAll(cartItems);
+
+		return order.getOrderId();
+	}
 }

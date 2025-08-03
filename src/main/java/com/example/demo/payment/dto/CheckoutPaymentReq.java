@@ -2,13 +2,18 @@ package com.example.demo.payment.dto;
 
 import java.util.UUID;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
 public class CheckoutPaymentReq {
-	private UUID storeId;
 	private String orderName;
 	private int amount;
 	private String customerEmail;
-	private String requestMessage;
+	private String successUrl;
+	private String failUrl;
+	
+	// 서버에서 설정되는 필드
+	private UUID orderId;
 }

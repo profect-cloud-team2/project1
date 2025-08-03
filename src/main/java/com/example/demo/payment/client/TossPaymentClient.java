@@ -86,14 +86,24 @@ public class TossPaymentClient {
 		body.put("amount", req.getAmount());
 		body.put("orderId", req.getOrderId().toString());
 		body.put("orderName", req.getOrderName());
-		body.put("successUrl", "http://localhost:8080/api/payment/success");
-		body.put("failUrl", "http://localhost:8080/api/payment/fail");
+		body.put("successUrl", req.getSuccessUrl());
+		body.put("failUrl", req.getFailUrl());
 		body.put("customerEmail", req.getCustomerEmail());
 
+		log.info("Toss API 요청: {}", body.toJSONString());
 		writeBody(conn, body);
 
 		String response = readResponse(conn);
-		return objectMapper.readValue(response, CheckoutPaymentRes.class);
+		log.info("Toss API 응답: {}", response);
+		
+		// CheckoutPaymentRes 생성
+		CheckoutPaymentRes result = new CheckoutPaymentRes();
+		result.setOrderId(req.getOrderId());
+		result.setAmount(req.getAmount());
+		result.setOrderName(req.getOrderName());
+		result.setMessage("결제 준비 완료. 클라이언트에서 TossPayments SDK로 결제 진행하세요.");
+		
+		return result;
 	}
 
 	public ConfirmPaymentRes confirmPayment(String paymentKey, UUID orderId, int amount) throws IOException {

@@ -50,7 +50,8 @@ public class SecurityConfig {
 				.requestMatchers("/api/user/signup", "/api/user/login",
 					"/api/user/refresh", "/api/user/logout",
 					"/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html",
-					"/api/payment/success", "/api/payment/fail").permitAll()
+					"/api/payment/success", "/api/payment/fail", "/api/payment/client-key",
+					"/tosspayment.HTML").permitAll()
 				.anyRequest().authenticated()
 			)
 			.sessionManagement(sessionManagement ->
