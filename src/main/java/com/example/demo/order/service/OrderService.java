@@ -6,4 +6,5 @@ import com.example.demo.order.dto.OrderCreateReq;
 
 public interface OrderService {
 	void createOrder(OrderCreateReq req, UUID userId);
+	void cancelOrder(UUID orderId, UUID userId);
 }

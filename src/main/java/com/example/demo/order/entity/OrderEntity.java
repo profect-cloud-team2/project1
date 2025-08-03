@@ -74,4 +74,9 @@ public class OrderEntity {
 
 	@OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
 	private List<OrderItemEntity> orderItems = new ArrayList<>();
+
+	public void softDelete(UUID deletedBy) {
+		this.deletedAt = LocalDateTime.now();
+		this.deletedBy = deletedBy;
+	}
 }
