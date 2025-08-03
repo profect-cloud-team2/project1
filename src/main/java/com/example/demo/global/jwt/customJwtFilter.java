@@ -57,6 +57,6 @@ public class customJwtFilter extends GenericFilterBean {
 			return bearerToken.substring(7);
 		}
 
-		return null;
+			return null;
 	}
 }

@@ -29,11 +29,11 @@ public class OrderEntity {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "user_id", nullable = false)
-	private UserEntity userId;
+	private UserEntity user;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "store_id", nullable = false)
-	private StoreEntity storeId;
+	private StoreEntity store;
 
 	@Column(name = "total_price", nullable = false)
 	private int total_price;

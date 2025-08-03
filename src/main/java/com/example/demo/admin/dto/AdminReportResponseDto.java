@@ -29,22 +29,33 @@ public class AdminReportResponseDto {
 	}
 
 	public static AdminReportResponseDto fromEntity(AdminReport entity) {
+		UserInfoDto reporter = null;
+		if (entity.getReporter() != null) {
+			reporter = UserInfoDto.builder()
+				.userId(entity.getReporter().getUserId())
+				.nickname(entity.getReporter().getNickname())
+				.email(entity.getReporter().getEmail())
+				.build();
+		}
+
+		UserInfoDto reported = null;
+		if (entity.getReported() != null) {
+			reported = UserInfoDto.builder()
+				.userId(entity.getReported().getUserId())
+				.nickname(entity.getReported().getNickname())
+				.email(entity.getReported().getEmail())
+				.build();
+		}
+
 		return AdminReportResponseDto.builder()
 			.reportId(entity.getReportId())
 			.reportType(entity.getReportType())
 			.content(entity.getContent())
 			.status(entity.getStatus().getDescription())
 			.createdAt(entity.getCreatedAt())
-			.reporter(UserInfoDto.builder()
-				.userId(entity.getReporter().getUserId())
-				.nickname(entity.getReporter().getNickname())
-				.email(entity.getReporter().getEmail())
-				.build())
-			.reported(UserInfoDto.builder()
-				.userId(entity.getReported().getUserId())
-				.nickname(entity.getReported().getNickname())
-				.email(entity.getReported().getEmail())
-				.build())
+			.reporter(reporter)
+			.reported(reported)
 			.build();
 	}
+
 }
