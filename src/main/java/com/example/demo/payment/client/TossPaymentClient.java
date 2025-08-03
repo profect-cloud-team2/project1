@@ -20,8 +20,6 @@ import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
 import com.example.demo.payment.dto.ConfirmPaymentRes;
-import com.example.demo.payment.dto.DirectPaymentReq;
-import com.example.demo.payment.dto.DirectPaymentRes;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.RequiredArgsConstructor;
@@ -42,26 +40,6 @@ public class TossPaymentClient {
 
 	@Value("${payment.toss.api-url}")
 	private String baseurl;
-
-	public DirectPaymentRes requestDirectPayment(DirectPaymentReq req) throws IOException {
-		URL url = new URL(baseurl + "/v1/payments/key-in");
-		HttpURLConnection conn = createConnection(url);
-
-		JSONObject body = new JSONObject();
-		body.put("amount", req.getAmount());
-		body.put("orderId", req.getOrderId().toString());
-		body.put("orderName", req.getOrderName());
-		body.put("cardNumber", req.getCardNumber());
-		body.put("cardExpirationYear", req.getCardExpirationYear());
-		body.put("cardExpirationMonth", req.getCardExpirationMonth());
-		body.put("cvc", req.getCvc());
-		body.put("customerIdentityNumber", req.getCustomerIdentityNumber());
-
-		writeBody(conn, body);
-
-		String response = readResponse(conn);
-		return objectMapper.readValue(response, DirectPaymentRes.class);
-	}
 
 	public CancelPaymentRes requestCancelPayment(CancelPaymentReq req) throws IOException {
 		URL url = new URL(baseurl + "/v1/payments/" + req.getPaymentKey() + "/cancel");

@@ -16,10 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.payment.dto.CancelPaymentReq;
 import com.example.demo.payment.dto.CancelPaymentRes;
-import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
-import com.example.demo.payment.dto.DirectPaymentReq;
-import com.example.demo.payment.dto.DirectPaymentRes;
+import com.example.demo.payment.dto.PaymentReadyReq;
 import com.example.demo.payment.service.PaymentService;
 
 import lombok.RequiredArgsConstructor;
@@ -34,16 +32,9 @@ public class PaymentController {
 	@Value("${payment.toss.client-key}")
 	private String clientKey;
 
-	//즉시결제
-	@PostMapping("/direct")
-	public ResponseEntity<DirectPaymentRes> directPay(@RequestBody DirectPaymentReq req) throws IOException {
-		DirectPaymentRes response = paymentService.requestDirectPayment(req);
-		return ResponseEntity.ok(response);
-	}
-
 	//인증결제
 	@PostMapping("/ready")
-	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody CheckoutPaymentReq req,
+	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody PaymentReadyReq req,
 		@AuthenticationPrincipal String userIdStr) throws IOException {
 
 		if (userIdStr == null) {
@@ -52,10 +43,7 @@ public class PaymentController {
 
 		UUID userId = UUID.fromString(userIdStr);
 
-		req.setSuccessUrl("http://localhost:8080/api/payment/success");
-		req.setFailUrl("http://localhost:8080/api/payment/fail");
-
-		CheckoutPaymentRes response = paymentService.requestCheckoutPayment(req, userId);
+		CheckoutPaymentRes response = paymentService.preparePaymentFromCart(req, userId);
 		return ResponseEntity.ok(response);
 	}
 
@@ -69,7 +57,6 @@ public class PaymentController {
 	// 결제 성공
 	@GetMapping("/success")
 	public ResponseEntity<String> paymentSuccess(
-		@RequestParam(required = false) String userId,
 		@RequestParam String orderId,
 		@RequestParam String paymentKey,
 		@RequestParam int amount) {

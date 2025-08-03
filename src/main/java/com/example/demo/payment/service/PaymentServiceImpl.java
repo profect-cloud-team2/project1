@@ -24,8 +24,7 @@ import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
 import com.example.demo.payment.dto.ConfirmPaymentRes;
-import com.example.demo.payment.dto.DirectPaymentReq;
-import com.example.demo.payment.dto.DirectPaymentRes;
+import com.example.demo.payment.dto.PaymentReadyReq;
 import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
 
@@ -42,11 +41,6 @@ public class PaymentServiceImpl implements PaymentService {
 	private final CartItemRepository cartItemRepository;
 	private final OrderRepository orderRepository;
 	private final OrderItemRepository orderItemRepository;
-
-	@Override
-	public DirectPaymentRes requestDirectPayment(DirectPaymentReq req) throws IOException {
-		return tossPaymentClient.requestDirectPayment(req);
-	}
 
 	@Override
 	public CheckoutPaymentRes requestCheckoutPayment(CheckoutPaymentReq req, UUID userId) throws IOException {
@@ -123,6 +117,39 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public CancelPaymentRes requestCancelPayment(CancelPaymentReq req) throws IOException {
 		return tossPaymentClient.requestCancelPayment(req);
+	}
+
+	@Override
+	public CheckoutPaymentRes preparePaymentFromCart(PaymentReadyReq req, UUID userId) throws IOException {
+		// 장바구니에서 결제 정보 계산
+		CartEntity cart = cartRepository.findWithItemsByUserId(userId)
+			.orElseThrow(() -> new IllegalArgumentException("장바구니가 비어있습니다."));
+
+		List<CartItemEntity> cartItems = cart.getItems();
+		if (cartItems.isEmpty()) {
+			throw new IllegalArgumentException("장바구니에 상품이 없습니다.");
+		}
+
+		// 총 금액 계산
+		int totalAmount = cartItems.stream()
+			.mapToInt(item -> item.getMenu().getPrice() * item.getQuantity())
+			.sum();
+
+		// 주문명 생성
+		String orderName = cartItems.get(0).getMenu().getName();
+		if (cartItems.size() > 1) {
+			orderName += " 외 " + (cartItems.size() - 1) + "건";
+		}
+
+		// CheckoutPaymentReq 생성
+		CheckoutPaymentReq checkoutReq = new CheckoutPaymentReq();
+		checkoutReq.setAmount(totalAmount);
+		checkoutReq.setOrderName(orderName);
+		checkoutReq.setCustomerEmail(req.getCustomerEmail());
+		checkoutReq.setSuccessUrl("http://localhost:8080/api/payment/success");
+		checkoutReq.setFailUrl("http://localhost:8080/api/payment/fail");
+
+		return requestCheckoutPayment(checkoutReq, userId);
 	}
 
 	@Override
