@@ -42,10 +42,10 @@ public class SecurityConfig {
 		http
 			.csrf(AbstractHttpConfigurer::disable)
 			.addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-			// .exceptionHandling(exceptionHandling -> exceptionHandling
-			//     .accessDeniedHandler(jwtAccessDeniedHandler)
-			//     .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-			// )
+			.exceptionHandling(exceptionHandling -> exceptionHandling
+			    .accessDeniedHandler(jwtAccessDeniedHandler)
+			    .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+			)
 			.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
 				.requestMatchers("/api/user/signup", "/api/user/login",
 					"/api/user/refresh", "/api/user/logout",

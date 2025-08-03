@@ -19,6 +19,7 @@ public class customJwtFilter extends GenericFilterBean {
 	private final Logger logger = LoggerFactory.getLogger(customJwtFilter.class);
 	private final String AUTHORIZATION_HEADER = "Authorization";
 	private AccessTokenProvider accessTokenProvider;
+
 	public customJwtFilter(AccessTokenProvider accessTokenProvider) {
 		this.accessTokenProvider = accessTokenProvider;
 	}
@@ -27,7 +28,7 @@ public class customJwtFilter extends GenericFilterBean {
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
 		FilterChain filterChain) throws IOException, ServletException {
-		HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+		HttpServletRequest httpServletRequest = (HttpServletRequest)servletRequest;
 		String jwt = resolveToken(httpServletRequest);
 		String requestURI = httpServletRequest.getRequestURI();
 
@@ -35,6 +36,10 @@ public class customJwtFilter extends GenericFilterBean {
 			Authentication authentication = accessTokenProvider.getAuthentication(jwt);
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			logger.debug("Security Context에 '{}' 인증 정보를 저장했습니다, uri: {}", authentication.getName(), requestURI);
+
+			if ("/api/payment/ready".equals(requestURI)) {
+				System.out.println("인증된 사용자 ID: " + authentication.getName());
+			}
 		} else {
 			logger.debug("유효한 JWT 토큰이 없습니다, uri: {}", requestURI);
 		}

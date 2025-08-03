@@ -45,7 +45,16 @@ public class PaymentController {
 	@PostMapping("/ready")
 	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody CheckoutPaymentReq req,
 		@AuthenticationPrincipal String userIdStr) throws IOException {
+
+		if (userIdStr == null) {
+			return ResponseEntity.status(401).body(null);
+		}
+
 		UUID userId = UUID.fromString(userIdStr);
+
+		req.setSuccessUrl("http://localhost:8080/api/payment/success");
+		req.setFailUrl("http://localhost:8080/api/payment/fail");
+
 		CheckoutPaymentRes response = paymentService.requestCheckoutPayment(req, userId);
 		return ResponseEntity.ok(response);
 	}
@@ -60,28 +69,20 @@ public class PaymentController {
 	// 결제 성공
 	@GetMapping("/success")
 	public ResponseEntity<String> paymentSuccess(
+		@RequestParam(required = false) String userId,
 		@RequestParam String orderId,
 		@RequestParam String paymentKey,
-		@RequestParam int amount,
-		@AuthenticationPrincipal String userIdStr) {
-		
-		System.out.println("=== 결제 성공 처리 시작 ===");
-		System.out.println("orderId: " + orderId);
-		System.out.println("paymentKey: " + paymentKey);
-		System.out.println("amount: " + amount);
-		System.out.println("userIdStr: " + userIdStr);
-		
+		@RequestParam int amount) {
+
+		String cleanOrderId = orderId.contains(",") ? orderId.split(",")[0] : orderId;
+
 		try {
-			// 익명 사용자 처리
-			if ("anonymousUser".equals(userIdStr) || userIdStr == null) {
-				System.out.println("익명 사용자로 결제 처리");
-				paymentService.confirmPaymentAndSaveOrderForAnonymous(paymentKey, orderId, amount);
-				return ResponseEntity.ok("결제가 성공하고 주문이 저장되었습니다!");
+			UUID user = paymentService.getUserIdByOrderId(cleanOrderId);
+			if (user == null) {
+				return ResponseEntity.badRequest().body("주문 정보를 찾을 수 없습니다.");
 			}
-			
-			System.out.println("인증된 사용자로 결제 처리");
-			UUID userId = UUID.fromString(userIdStr);
-			paymentService.confirmPaymentAndSaveOrder(paymentKey, orderId, amount, userId);
+
+			paymentService.confirmPaymentAndSaveOrder(paymentKey, cleanOrderId, amount, user);
 			return ResponseEntity.ok("결제가 성공 및 주문 저장 완료");
 		} catch (Exception e) {
 			System.err.println("결제 처리 오류: " + e.getMessage());

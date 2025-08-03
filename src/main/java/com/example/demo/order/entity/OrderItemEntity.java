@@ -1,5 +1,6 @@
 package com.example.demo.order.entity;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import com.example.demo.menus.entity.MenuEntity;
@@ -39,9 +40,36 @@ public class OrderItemEntity {
 	@JoinColumn(name = "menu_id", nullable = false)
 	private MenuEntity menu;
 
+	@Column(name = "store_name", nullable = false)
+	private String storeName;
+
+	@Column(name = "menu_name", nullable = false)
+	private String menuName;
+
 	@Column(nullable = false)
 	private int quantity;
 
 	@Column(nullable = false)
 	private int price;
+
+	@Column(name = "request_message")
+	private String requestMessage;
+
+	@Column(name = "created_at", nullable = false)
+	private LocalDateTime createdAt;
+
+	@Column(name = "created_by", nullable = false)
+	private UUID createdBy;
+
+	@Column(name = "updated_at")
+	private LocalDateTime updatedAt;
+
+	@Column(name = "updated_by")
+	private UUID updatedBy;
+
+	@Column(name = "deleted_at")
+	private LocalDateTime deletedAt;
+
+	@Column(name = "deleted_by")
+	private UUID deletedBy;
 }

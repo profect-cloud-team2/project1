@@ -16,8 +16,8 @@ public interface PaymentService {
 	CheckoutPaymentRes requestCheckoutPayment(CheckoutPaymentReq req, UUID userId) throws IOException;
 
 	void confirmPaymentAndSaveOrder(String paymentKey, String orderId, int amount, UUID userId) throws IOException;
-	
-	void confirmPaymentAndSaveOrderForAnonymous(String paymentKey, String orderId, int amount) throws IOException;
 
 	CancelPaymentRes requestCancelPayment(CancelPaymentReq req) throws IOException;
+	
+	UUID getUserIdByOrderId(String orderId);
 }

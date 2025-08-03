@@ -4,7 +4,6 @@ paymentButton.addEventListener("click", async function () {
     const customerEmail = document.getElementById("customerEmail").value;
     const orderId = crypto.randomUUID(); // UUID 자동 생성
 
-    // 🟡 [1] 백엔드에 먼저 주문 생성 요청
     try {
         const res = await fetch("http://localhost:8080/api/order/create", {
             method: "POST",
@@ -16,7 +15,6 @@ paymentButton.addEventListener("click", async function () {
                 orderId: orderId,
                 orderName: orderName,
                 amount: amount,
-                // 추가로 storeId, requestMessage 등 필요한 값도 같이 보낼 수 있음
             }),
         });
 
@@ -28,7 +26,6 @@ paymentButton.addEventListener("click", async function () {
         return;
     }
 
-    // 🟢 [2] Toss 결제창 띄우기
     tossPayments
         .requestPayment("CARD", {
             amount: amount,

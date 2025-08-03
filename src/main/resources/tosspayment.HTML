@@ -277,7 +277,11 @@
     function loadCartItems() {
         console.log('장바구니 데이터 로드 시작...');
 
-        fetch('/api/cart')
+        fetch('/api/cart', {
+            headers: {
+                "Authorization": "Bearer " + localStorage.getItem("token")
+            }
+        })
             .then(response => {
                 console.log('API 응답 상태:', response.status, response.statusText);
                 console.log('API 응답 헤더:', response.headers);
@@ -416,18 +420,19 @@
             alert('결제 시스템이 아직 로드되지 않았습니다. 잠시 후 다시 시도해주세요.');
             return;
         }
+        const userId = localStorage.getItem("userId");
 
         // URL 파라미터 확인
         const urlParams = new URLSearchParams(window.location.search);
         const hasOrderParams = urlParams.get('orderId') && urlParams.get('amount') && urlParams.get('orderName');
-        
+
         if (!hasOrderParams && cartItems.length === 0) {
             alert('장바구니가 비어있습니다.');
             return;
         }
 
         let orderId, finalAmount, orderName;
-        
+
         if (hasOrderParams) {
             // URL 파라미터 사용
             orderId = urlParams.get('orderId');
@@ -457,7 +462,7 @@
             orderName: orderName,
             customerName: '고객',
             customerEmail: 'customer@example.com',
-            successUrl: 'http://localhost:8080/api/payment/success',
+            successUrl: `http://localhost:8080/api/payment/success?userId=${userId}&orderId=${orderId}&amount=${finalAmount}`,
             failUrl: 'http://localhost:8080/api/payment/fail'
         }).catch(error => {
             console.error('결제 오류:', error);
@@ -473,21 +478,21 @@
     function generateOrderId() {
         return 'order_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
     }
-    
+
     // URL 파라미터로 주문 정보 표시
     function displayOrderFromParams() {
         const urlParams = new URLSearchParams(window.location.search);
         const orderId = urlParams.get('orderId');
         const amount = parseInt(urlParams.get('amount'));
         const orderName = urlParams.get('orderName');
-        
+
         const orderSection = document.getElementById('orderSection');
         const loadingCart = document.getElementById('loadingCart');
-        
+
         if (loadingCart) {
             loadingCart.style.display = 'none';
         }
-        
+
         orderSection.innerHTML = `
             <div class="menu-item">
                 <div class="menu-info">
@@ -499,18 +504,18 @@
                 </div>
             </div>
         `;
-        
+
         // 총 금액 업데이트
         totalAmount = amount;
         document.getElementById('totalAmount').textContent = amount.toLocaleString() + '원';
-        
-        console.log('URL 파라미터로 주문 정보 로드 완료:', { orderId, amount, orderName });
+
+        console.log('URL 파라미터로 주문 정보 로드 완료:', {orderId, amount, orderName});
     }
 
     // URL 파라미터 확인
     const urlParams = new URLSearchParams(window.location.search);
     const hasOrderParams = urlParams.get('orderId') && urlParams.get('amount') && urlParams.get('orderName');
-    
+
     if (hasOrderParams) {
         // URL 파라미터가 있으면 직접 결제 정보 표시
         displayOrderFromParams();
