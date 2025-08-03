@@ -3,10 +3,14 @@ package com.example.demo.payment.service;
 import java.io.IOException;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.example.demo.payment.dto.CancelPaymentReq;
 import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
+import com.example.demo.payment.dto.PaymentHistoryResponseDto;
 import com.example.demo.payment.dto.PaymentReadyReq;
 
 public interface PaymentService {
@@ -20,4 +24,6 @@ public interface PaymentService {
 	CancelPaymentRes requestCancelPayment(CancelPaymentReq req) throws IOException;
 
 	UUID getUserIdByOrderId(String orderId);
+
+	Page<PaymentHistoryResponseDto> getPaymentHistory(UUID userId, Pageable pageable);
 }

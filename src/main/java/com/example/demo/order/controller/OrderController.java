@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.order.dto.OrderCreateReq;
+import com.example.demo.order.dto.OrderDetailResponseDto;
+import com.example.demo.order.dto.OrderMenuResponseDto;
 import com.example.demo.order.dto.OrderResponseDto;
 import com.example.demo.order.dto.OrderStatusUpdateReq;
 import com.example.demo.order.service.OrderService;
@@ -52,6 +54,46 @@ public class OrderController {
 			return ResponseEntity.badRequest().body(e.getMessage());
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 조회 실패: " + e.getMessage());
+		}
+	}
+
+	@GetMapping("/my")
+	public ResponseEntity<?> getUserOrders(@AuthenticationPrincipal String userIdStr, 
+		Pageable pageable) {
+		try {
+			UUID userId = UUID.fromString(userIdStr);
+			Page<OrderResponseDto> orders = orderService.getUserOrders(userId, pageable);
+			return ResponseEntity.ok(orders);
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 조회 실패: " + e.getMessage());
+		}
+	}
+
+	@GetMapping("/my/detail")
+	public ResponseEntity<?> getMyOrdersWithMenu(@AuthenticationPrincipal String userIdStr,
+			Pageable pageable) {
+		try {
+			UUID userId = UUID.fromString(userIdStr);
+			Page<OrderMenuResponseDto> orders = orderService.getMyOrdersWithMenu(userId, pageable);
+			return ResponseEntity.ok(orders);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 메뉴 조회 실패: " + e.getMessage());
+		}
+	}
+
+	@GetMapping("/{orderId}")
+	public ResponseEntity<?> getOrderDetail(@PathVariable UUID orderId,
+			@AuthenticationPrincipal String userIdStr) {
+		try {
+			UUID userId = UUID.fromString(userIdStr);
+			OrderDetailResponseDto order = orderService.getOrderDetail(orderId, userId);
+			return ResponseEntity.ok(order);
+		} catch (IllegalArgumentException e) {
+			return ResponseEntity.badRequest().body(e.getMessage());
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 상세 조회 실패: " + e.getMessage());
 		}
 	}
 

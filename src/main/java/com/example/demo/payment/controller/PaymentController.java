@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.payment.dto.CancelPaymentReq;
 import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
+import com.example.demo.payment.dto.PaymentHistoryResponseDto;
 import com.example.demo.payment.dto.PaymentReadyReq;
 import com.example.demo.payment.service.PaymentService;
 
@@ -89,5 +92,18 @@ public class PaymentController {
 	@GetMapping("/client-key")
 	public ResponseEntity<String> getClientKey() {
 		return ResponseEntity.ok(clientKey);
+	}
+
+	// 결제 내역 조회
+	@GetMapping("/history")
+	public ResponseEntity<?> getPaymentHistory(@AuthenticationPrincipal String userIdStr,
+			Pageable pageable) {
+		try {
+			UUID userId = UUID.fromString(userIdStr);
+			Page<PaymentHistoryResponseDto> history = paymentService.getPaymentHistory(userId, pageable);
+			return ResponseEntity.ok(history);
+		} catch (Exception e) {
+			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결제 내역 조회 실패: " + e.getMessage());
+		}
 	}
 }

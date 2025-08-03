@@ -19,12 +19,18 @@ import com.example.demo.order.entity.OrderStatus;
 import com.example.demo.order.repository.OrderItemRepository;
 import com.example.demo.order.repository.OrderRepository;
 import com.example.demo.payment.client.TossPaymentClient;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+
 import com.example.demo.payment.dto.CancelPaymentReq;
 import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
 import com.example.demo.payment.dto.CheckoutPaymentRes;
 import com.example.demo.payment.dto.ConfirmPaymentRes;
+import com.example.demo.payment.dto.PaymentHistoryResponseDto;
 import com.example.demo.payment.dto.PaymentReadyReq;
+import com.example.demo.payment.entity.PaymentHistoryEntity;
+import com.example.demo.payment.repository.PaymentHistoryRepository;
 import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
 
@@ -41,6 +47,7 @@ public class PaymentServiceImpl implements PaymentService {
 	private final CartItemRepository cartItemRepository;
 	private final OrderRepository orderRepository;
 	private final OrderItemRepository orderItemRepository;
+	private final PaymentHistoryRepository paymentHistoryRepository;
 
 	@Override
 	public CheckoutPaymentRes requestCheckoutPayment(CheckoutPaymentReq req, UUID userId) throws IOException {
@@ -109,6 +116,22 @@ public class PaymentServiceImpl implements PaymentService {
 			orderItemRepository.save(orderItem);
 		});
 
+		// PaymentHistory 저장
+		PaymentHistoryEntity paymentHistory = PaymentHistoryEntity.builder()
+			.paymentHistoryId(UUID.randomUUID())
+			.order(order)
+			.paymentKey(paymentKey)
+			.paymentMethod("CARD")
+			.totalAmount(amount)
+			.currency("KRW")
+			.status("DONE")
+			.requestedAt(LocalDateTime.now())
+			.approvedAt(LocalDateTime.now())
+			.createdAt(LocalDateTime.now())
+			.createdBy(user.getUserId())
+			.build();
+		paymentHistoryRepository.save(paymentHistory);
+
 		// 주문 완료 후 장바구니 hardDelete
 		cartItemRepository.deleteAll(cartItems);
 		cartRepository.delete(cart);
@@ -155,5 +178,19 @@ public class PaymentServiceImpl implements PaymentService {
 	@Override
 	public UUID getUserIdByOrderId(String orderId) {
 		return orderUserMap.get(orderId);
+	}
+
+	@Override
+	public Page<PaymentHistoryResponseDto> getPaymentHistory(UUID userId, Pageable pageable) {
+		return paymentHistoryRepository.findByUserIdAndDeletedAtIsNull(userId, pageable)
+			.map(payment -> PaymentHistoryResponseDto.builder()
+				.paymentHistoryId(payment.getPaymentHistoryId())
+				.orderId(payment.getOrder().getOrderId())
+				.storeName(payment.getOrder().getStore().getName())
+				.paymentMethod(payment.getPaymentMethod())
+				.totalAmount(payment.getTotalAmount())
+				.status(payment.getStatus())
+				.approvedAt(payment.getApprovedAt())
+				.build());
 	}
 }
