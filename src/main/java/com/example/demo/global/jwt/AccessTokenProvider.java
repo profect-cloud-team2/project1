@@ -1,17 +1,11 @@
 package com.example.demo.global.jwt;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-
-import javax.crypto.SecretKey;
-
-import com.example.demo.user.entity.UserEntity;
-import com.example.demo.user.entity.UserEntity.UserRole;
-
-import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +14,19 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
+
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.UnsupportedJwtException;
+import io.jsonwebtoken.security.Keys;
+
+import javax.crypto.SecretKey; // JWT 0.12.3: Key 대신 SecretKey 사용
+
+import com.example.demo.user.entity.UserEntity;
 
 @Component
 public class AccessTokenProvider {
@@ -31,30 +37,27 @@ public class AccessTokenProvider {
 	private final long accessTokenExpiration;
 
 	public AccessTokenProvider(@Value("${jwt.secret}") String secret,
-		@Value("${jwt.access-token-expiration:3600000}") long accessTokenExpiration){
+							   @Value("${jwt.access-token-expiration:3600000}") long accessTokenExpiration){
 		this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
 		this.accessTokenExpiration = accessTokenExpiration;
 	}
 
-	// ✅ 액세스 토큰 생성
 	public String createAccessToken(Authentication authentication){
 		String authorities = authentication.getAuthorities().stream()
-			.map(auth -> auth.getAuthority().replace("ROLE_",""))
-			.findFirst()
-			.get();
+				.map(auth -> auth.getAuthority().replace("ROLE_",""))
+				.findFirst()
+				.get();
 
 		long now = (new Date()).getTime();
 		Date validity = new Date(now + this.accessTokenExpiration);
 
 		return Jwts.builder()
-			.subject(authentication.getName()) // userId
-			.claim("role", authorities)
+			.subject(authentication.getName())
+				.claim("role", authorities)
 			.signWith(key)
 			.expiration(validity)
 			.compact();
 	}
-
-	// ✅ Authentication 반환 시 UserEntity 포함하도록 수정
 	public Authentication getAuthentication(String token) {
 		Claims claims = Jwts
 			.parser()
@@ -68,16 +71,14 @@ public class AccessTokenProvider {
 
 		UserEntity user = UserEntity.builder()
 			.userId(java.util.UUID.fromString(userId))
-			.role(UserRole.valueOf(role))
+			.role(UserEntity.UserRole.valueOf(role))
 			.build();
-
 		Collection<? extends GrantedAuthority> authorities =
 			List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
 		return new UsernamePasswordAuthenticationToken(user, token, authorities);
 	}
 
-	// ✅ 토큰 유효성 검사
 	public boolean validateToken(String token) {
 		try {
 			Jwts.parser()
