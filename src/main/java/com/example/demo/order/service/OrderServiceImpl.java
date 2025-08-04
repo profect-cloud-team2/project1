@@ -62,7 +62,7 @@ public class OrderServiceImpl implements OrderService {
 			throw new IllegalArgumentException("자신의 주문만 취소할 수 있습니다.");
 		}
 
-		if (!OrderStatus.주문접수.equals(order.getOrderStatus())) {
+		if (!OrderStatus.RECEIVED.equals(order.getOrderStatus())) {
 			throw new IllegalArgumentException("주문접수 상태에서만 취소 가능합니다.");
 		}
 
@@ -75,15 +75,15 @@ public class OrderServiceImpl implements OrderService {
 		// 결제 내역 조회 및 취소
 		PaymentHistoryEntity paymentHistory = paymentHistoryRepository.findByOrderOrderIdAndDeletedAtIsNull(orderId)
 			.orElse(null);
-		
+
 		if (paymentHistory != null) {
 			try {
 				CancelPaymentReq cancelReq = new CancelPaymentReq();
 				cancelReq.setPaymentKey(paymentHistory.getPaymentKey());
-				cancelReq.setCancelReason("주문 취소");
+				cancelReq.setCancelReason(OrderStatus.CANCELED.name());
 				cancelReq.setCancelAmount(paymentHistory.getTotalAmount());
 				paymentService.requestCancelPayment(cancelReq);
-				
+
 				// PaymentHistory 상태 업데이트
 				PaymentHistoryEntity updatedHistory = PaymentHistoryEntity.builder()
 					.paymentHistoryId(paymentHistory.getPaymentHistoryId())
@@ -92,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
 					.paymentMethod(paymentHistory.getPaymentMethod())
 					.totalAmount(paymentHistory.getTotalAmount())
 					.currency(paymentHistory.getCurrency())
-					.status("CANCELED")
+					.status(OrderStatus.CANCELED.name())
 					.requestedAt(paymentHistory.getRequestedAt())
 					.approvedAt(paymentHistory.getApprovedAt())
 					.createdAt(paymentHistory.getCreatedAt())
@@ -100,7 +100,6 @@ public class OrderServiceImpl implements OrderService {
 					.updatedAt(LocalDateTime.now())
 					.updatedBy(userId)
 					.build();
-				paymentHistoryRepository.save(updatedHistory);
 			} catch (Exception e) {
 				System.err.println("결제 취소 실패: " + e.getMessage());
 				throw new IllegalStateException("결제 취소에 실패했습니다.");
@@ -108,7 +107,7 @@ public class OrderServiceImpl implements OrderService {
 		}
 
 		order.softDelete(userId);
-		order.setOrderStatus(OrderStatus.주문취소);
+		order.setOrderStatus(OrderStatus.CANCELED);
 		orderRepository.save(order);
 	}
 
@@ -117,12 +116,13 @@ public class OrderServiceImpl implements OrderService {
 		LocalDateTime tenMinutesAgo = LocalDateTime.now().minusMinutes(10);
 
 		orderRepository.findByOrderStatusAndCreatedAtBeforeAndDeletedAtIsNull(
-				OrderStatus.주문접수, tenMinutesAgo)
+				OrderStatus.RECEIVED, tenMinutesAgo)
 			.forEach(order -> {
 				// 결제 내역 조회 및 취소
-				PaymentHistoryEntity paymentHistory = paymentHistoryRepository.findByOrderOrderIdAndDeletedAtIsNull(order.getOrderId())
+				PaymentHistoryEntity paymentHistory = paymentHistoryRepository.findByOrderOrderIdAndDeletedAtIsNull(
+						order.getOrderId())
 					.orElse(null);
-				
+
 				if (paymentHistory != null) {
 					try {
 						CancelPaymentReq cancelReq = new CancelPaymentReq();
@@ -130,7 +130,7 @@ public class OrderServiceImpl implements OrderService {
 						cancelReq.setCancelReason("자동 취소 (10분 초과)");
 						cancelReq.setCancelAmount(paymentHistory.getTotalAmount());
 						paymentService.requestCancelPayment(cancelReq);
-						
+
 						// PaymentHistory 상태 업데이트
 						PaymentHistoryEntity updatedHistory = PaymentHistoryEntity.builder()
 							.paymentHistoryId(paymentHistory.getPaymentHistoryId())
@@ -139,7 +139,7 @@ public class OrderServiceImpl implements OrderService {
 							.paymentMethod(paymentHistory.getPaymentMethod())
 							.totalAmount(paymentHistory.getTotalAmount())
 							.currency(paymentHistory.getCurrency())
-							.status("CANCELED")
+							.status(OrderStatus.CANCELED.name())
 							.requestedAt(paymentHistory.getRequestedAt())
 							.approvedAt(paymentHistory.getApprovedAt())
 							.createdAt(paymentHistory.getCreatedAt())
@@ -152,9 +152,9 @@ public class OrderServiceImpl implements OrderService {
 						System.err.println("자동 취소 시 결제 취소 실패: " + e.getMessage());
 					}
 				}
-				
+
 				order.softDelete(order.getUser().getUserId());
-				order.setOrderStatus(OrderStatus.주문취소);
+				order.setOrderStatus(OrderStatus.CANCELED);
 				orderRepository.save(order);
 				System.out.println("자동 취소된 주문: " + order.getOrderId());
 			});
