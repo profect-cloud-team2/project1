@@ -99,7 +99,7 @@ public class OrderController {
 		return ResponseEntity.ok("주문이 취소되었습니다.");
 	}
 
-	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
+	@PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
 	@PatchMapping("/{orderId}/status")
 	public ResponseEntity<String> updateOrderStatus(@PathVariable UUID orderId,
 		@RequestBody OrderStatusUpdateReq req,
