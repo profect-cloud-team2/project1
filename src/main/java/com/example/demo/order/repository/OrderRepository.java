@@ -18,7 +18,7 @@ public interface OrderRepository extends JpaRepository<OrderEntity, UUID> {
 
 	Page<OrderEntity> findAllByOrderStatusAndDeletedAtIsNull(OrderStatus orderStatus, Pageable pageable);
 
-	@Query("SELECT o FROM OrderEntity o WHERE o.store.storeId = :storeId AND o.deletedAt IS NULL")
+	@Query("SELECT o FROM OrderEntity o WHERE o.store.storeId = :storeId AND o.deletedAt IS NULL ORDER BY o.createdAt DESC")
 	Page<OrderEntity> findByStoreIdAndDeletedAtIsNull(UUID storeId, Pageable pageable);
 
 	List<OrderEntity> findByOrderStatusAndCreatedAtBeforeAndDeletedAtIsNull(
@@ -27,6 +27,6 @@ public interface OrderRepository extends JpaRepository<OrderEntity, UUID> {
 	@Query("SELECT o FROM OrderEntity o WHERE o.orderId = :orderId AND o.deletedAt IS NULL")
 	Optional<OrderEntity> findByIdAndDeletedAtIsNull(UUID orderId);
 
-	@Query("SELECT o FROM OrderEntity o WHERE o.user.userId = :userId AND o.deletedAt IS NULL")
+	@Query("SELECT o FROM OrderEntity o WHERE o.user.userId = :userId AND o.deletedAt IS NULL ORDER BY o.createdAt DESC")
 	Page<OrderEntity> findByUserUserIdAndDeletedAtIsNull(UUID userId, Pageable pageable);
 }

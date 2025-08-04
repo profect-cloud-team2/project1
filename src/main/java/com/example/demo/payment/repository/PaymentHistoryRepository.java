@@ -11,9 +11,9 @@ import org.springframework.data.jpa.repository.Query;
 import com.example.demo.payment.entity.PaymentHistoryEntity;
 
 public interface PaymentHistoryRepository extends JpaRepository<PaymentHistoryEntity, UUID> {
-	
-	@Query("SELECT p FROM PaymentHistoryEntity p WHERE p.order.user.userId = :userId AND p.deletedAt IS NULL")
+
+	@Query("SELECT p FROM PaymentHistoryEntity p WHERE p.order.user.userId = :userId AND p.deletedAt IS NULL ORDER BY p.createdAt DESC")
 	Page<PaymentHistoryEntity> findByUserIdAndDeletedAtIsNull(UUID userId, Pageable pageable);
-	
+
 	Optional<PaymentHistoryEntity> findByOrderOrderIdAndDeletedAtIsNull(UUID orderId);
 }
