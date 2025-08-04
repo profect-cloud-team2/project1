@@ -43,6 +43,11 @@ public class ReviewController {
 	@Operation(
 		summary = "리뷰 작성",
 		description = "유저가 리뷰를 작성합니다.",
+		responses = {
+			@ApiResponse(responseCode = "200", description = "리뷰 작성 성공"),
+			@ApiResponse(responseCode = "400", description = "유효하지 않은 입력"),
+			@ApiResponse(responseCode = "401", description = "인증 실패")
+		},
 		requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
 			required = true,
 			content = @Content(
@@ -69,7 +74,11 @@ public class ReviewController {
 
 	@Operation(
 		summary = "가게 리뷰 목록 조회",
-		description = "특정 가게의 리뷰를 전체 조회합니다."
+		description = "특정 가게의 리뷰를 전체 조회합니다.",
+		responses = {
+			@ApiResponse(responseCode = "200", description = "리뷰 목록 조회 성공"),
+			@ApiResponse(responseCode = "404", description = "해당 가게를 찾을 수 없음")
+		}
 	)
 	@GetMapping("/store/{storeId}")
 	public List<ReviewResponseDto> getReviews(
@@ -80,7 +89,11 @@ public class ReviewController {
 
 	@Operation(
 		summary = "내가 작성한 리뷰 목록 조회",
-		description = "내가 작성한 리뷰들을 전체 조회합니다."
+		description = "내가 작성한 리뷰들을 전체 조회합니다.",
+		responses = {
+			@ApiResponse(responseCode = "200", description = "내 리뷰 목록 조회 성공"),
+			@ApiResponse(responseCode = "401", description = "인증되지 않은 사용자")
+		}
 	)
 	@GetMapping("/my")
 	public List<ReviewResponseDto> getMyReviews(@AuthenticationPrincipal UserEntity user) {
@@ -90,6 +103,11 @@ public class ReviewController {
 	@Operation(
 		summary = "사장님 답글 작성/수정",
 		description = "사장님이 특정 리뷰에 대한 답글을 작성하거나 수정합니다.",
+		responses = {
+			@ApiResponse(responseCode = "200", description = "답글 작성 또는 수정 성공"),
+			@ApiResponse(responseCode = "403", description = "사장님 권한이 아님"),
+			@ApiResponse(responseCode = "404", description = "해당 리뷰 없음")
+		},
 		requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
 			required = true,
 			content = @Content(
@@ -116,9 +134,14 @@ public class ReviewController {
 
 	@Operation(
 		summary = "사장님 답글 삭제",
-		description = "사장님이 리뷰에 남긴 답글을 삭제합니다."
+		description = "사장님이 리뷰에 남긴 답글을 삭제처리합니다.",
+		responses = {
+			@ApiResponse(responseCode = "200", description = "답글 삭제 성공"),
+			@ApiResponse(responseCode = "403", description = "사장님 권한이 아님"),
+			@ApiResponse(responseCode = "404", description = "해당 리뷰 없음")
+		}
 	)
-	@DeleteMapping("/{reviewId}/owner-reply")
+	@PatchMapping("/{reviewId}/owner-reply/delete")
 	public void deleteOwnerReply(
 		@Parameter(description = "리뷰 ID") @PathVariable UUID reviewId,
 		@AuthenticationPrincipal UserEntity user
@@ -129,9 +152,14 @@ public class ReviewController {
 
 	@Operation(
 		summary = "리뷰 삭제",
-		description = "본인 또는 관리자 권한으로 리뷰를 삭제합니다."
+		description = "본인 또는 관리자 권한으로 리뷰를 삭제처리합니다.",
+		responses = {
+			@ApiResponse(responseCode = "200", description = "리뷰 삭제 성공"),
+			@ApiResponse(responseCode = "403", description = "삭제 권한 없음"),
+			@ApiResponse(responseCode = "404", description = "해당 리뷰 없음")
+		}
 	)
-	@DeleteMapping("/{reviewId}")
+	@PatchMapping("/{reviewId}")
 	public void deleteReview(
 		@Parameter(description = "리뷰 ID") @PathVariable UUID reviewId,
 		@AuthenticationPrincipal UserEntity user

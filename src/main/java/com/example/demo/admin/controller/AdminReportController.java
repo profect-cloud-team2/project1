@@ -28,19 +28,6 @@ public class AdminReportController {
 
 	private final AdminReportService adminReportService;
 
-	@Operation(summary = "신고 생성", description = "새로운 신고 내역을 생성합니다.")
-	@ApiResponses({
-		@ApiResponse(responseCode = "200", description = "신고 생성 성공")
-	})
-	@PostMapping
-	public ResponseEntity<AdminReportResponseDto> createReport(
-		@RequestBody(description = "신고 생성 요청 DTO", required = true) AdminReportRequestDto dto,
-		@Parameter(hidden = true) @AuthenticationPrincipal UserEntity user
-	) {
-		AdminReportResponseDto response = adminReportService.createReport(dto, user.getUserId());
-		return ResponseEntity.ok(response);
-	}
-
 	@Operation(summary = "신고 단건 조회", description = "신고 ID로 해당 신고 내역을 조회합니다.")
 	@ApiResponses({
 		@ApiResponse(responseCode = "200", description = "신고 조회 성공"),
@@ -60,7 +47,7 @@ public class AdminReportController {
 		@ApiResponse(responseCode = "403", description = "권한 없음"),
 		@ApiResponse(responseCode = "404", description = "신고가 존재하지 않음")
 	})
-	@PutMapping("/{reportId}/status")
+	@PatchMapping("/{reportId}/status")
 	public ResponseEntity<AdminReportResponseDto> updateReportStatus(
 		@Parameter(description = "상태를 변경할 신고 ID") @PathVariable UUID reportId,
 		@RequestBody(description = "상태 변경 요청 DTO", required = true) AdminReportUpdateRequestDto dto,
@@ -76,7 +63,7 @@ public class AdminReportController {
 		@ApiResponse(responseCode = "403", description = "권한 없음"),
 		@ApiResponse(responseCode = "404", description = "신고가 존재하지 않음")
 	})
-	@DeleteMapping("/{reportId}")
+	@PatchMapping("/{reportId}/delete")
 	public ResponseEntity<Map<String, String>> deleteReport(
 		@Parameter(description = "삭제할 신고 ID") @PathVariable UUID reportId,
 		@Parameter(hidden = true) @AuthenticationPrincipal UserEntity user
