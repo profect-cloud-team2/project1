@@ -8,10 +8,8 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CustomerOrderRequestDto {
-	private UUID userId;
+public class OrderCreateReq {
 	private UUID storeId;
-	private List<UUID> menuItemId;
-	private int totalPrice;
 	private String requestMessage;
+	private List<UUID> cartItemIds; // 장바구니 아이템 ID 목록
 }

@@ -5,16 +5,16 @@ import java.util.UUID;
 
 import com.example.demo.order.entity.OrderStatus;
 
+import lombok.Builder;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
-@Setter
-public class CustomerOrderResponseDto {
+@Builder
+public class OrderResponseDto {
 	private UUID orderId;
-	private UUID userId;
-	private UUID storeId;
-	private String requestMessage;
+	private String storeName;
+	private int totalPrice;
 	private OrderStatus orderStatus;
+	private String requestMessage;
 	private LocalDateTime createdAt;
 }

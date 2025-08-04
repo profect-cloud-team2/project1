@@ -7,5 +7,7 @@ import lombok.Data;
 @Data
 public class CheckoutPaymentRes {
 	private UUID orderId;
-	private String checkoutUrl;
+	private String message;
+	private int amount;
+	private String orderName;
 }
