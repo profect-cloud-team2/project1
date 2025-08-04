@@ -31,6 +31,11 @@ springdoc:
 jwt:
   secret: ${JWT_ACCESS_SECRET}
 
+openai:
+  api-key: ${OPENAI_API_KEY}
+  model: gpt-4o-mini
+
+
 logging:
   level:
     org.springframework.security: DEBUG

@@ -25,7 +25,6 @@ import lombok.RequiredArgsConstructor;
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
 public class SecurityConfig {
-
 	private final AccessTokenProvider accessTokenProvider;
 	private final CorsFilter corsFilter;
 	private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
@@ -36,29 +35,33 @@ public class SecurityConfig {
 		return new BCryptPasswordEncoder();
 	}
 
-	@Bean
-	public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-
-		http
-			.csrf(AbstractHttpConfigurer::disable)
-			.addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-			.exceptionHandling(exceptionHandling -> exceptionHandling
-			    .accessDeniedHandler(jwtAccessDeniedHandler)
-			    .authenticationEntryPoint(jwtAuthenticationEntryPoint)
-			)
-			.authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
-				.requestMatchers("/api/user/signup", "/api/user/login",
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(AbstractHttpConfigurer::disable)
+            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+            .exceptionHandling(exceptionHandling -> exceptionHandling
+                .accessDeniedHandler(jwtAccessDeniedHandler)
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+            )
+            .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
+                .requestMatchers(
+					"/api/user/signup", "/api/user/login",
 					"/api/user/refresh", "/api/user/logout",
-					"/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html",
-					"/api/payment/success", "/api/payment/fail", "/api/payment/client-key",
-					"/tosspayment.HTML").permitAll()
-				.anyRequest().authenticated()
-			)
-			.sessionManagement(sessionManagement ->
-				sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-			)
-			.with(new JwtSecurityConfig(accessTokenProvider), customizer -> {
-			});
-		return http.build();
-	}
+					"/swagger-ui/**", "/swagger-ui.html",
+					"/v3/api-docs/**", "/swagger-resources/**",
+					"/swagger-resources", "/configuration/**",
+					"/webjars/**", "/api/payment/success", "/api/payment/fail",
+					"/api/payment/client-key", "/tosspayment.HTML"
+                ).permitAll()
+                .anyRequest().authenticated()
+            )
+            .sessionManagement(sessionManagement ->
+                sessionManagement.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            .with(new JwtSecurityConfig(accessTokenProvider), customizer -> {
+            });
+        return http.build();
+    }
+
 }

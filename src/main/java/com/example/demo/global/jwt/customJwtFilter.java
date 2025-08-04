@@ -19,18 +19,25 @@ public class customJwtFilter extends GenericFilterBean {
 	private final Logger logger = LoggerFactory.getLogger(customJwtFilter.class);
 	private final String AUTHORIZATION_HEADER = "Authorization";
 	private AccessTokenProvider accessTokenProvider;
-
 	public customJwtFilter(AccessTokenProvider accessTokenProvider) {
 		this.accessTokenProvider = accessTokenProvider;
 	}
 
-	//doFilter - 토큰의 인증정보를 securityContext에 저장하는 역할 수행
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
 		FilterChain filterChain) throws IOException, ServletException {
 		HttpServletRequest httpServletRequest = (HttpServletRequest)servletRequest;
 		String jwt = resolveToken(httpServletRequest);
 		String requestURI = httpServletRequest.getRequestURI();
+
+		if (requestURI.startsWith("/swagger") ||
+			requestURI.startsWith("/v3/api-docs") ||
+			requestURI.startsWith("/swagger-ui") ||
+			requestURI.startsWith("/webjars") ||
+			requestURI.startsWith("/configuration")) {
+			filterChain.doFilter(servletRequest, servletResponse);
+			return;
+		}
 
 		if (StringUtils.hasText(jwt) && accessTokenProvider.validateToken(jwt)) {
 			Authentication authentication = accessTokenProvider.getAuthentication(jwt);

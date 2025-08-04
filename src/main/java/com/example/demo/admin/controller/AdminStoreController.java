@@ -1,4 +1,4 @@
-package com.example.demo.store.controller;
+package com.example.demo.admin.controller;
 
 import java.util.UUID;
 
@@ -16,7 +16,7 @@ import com.example.demo.store.service.StoreService;
 import lombok.RequiredArgsConstructor;
 
 @RestController
-@RequestMapping("/admin/stores")
+@RequestMapping("/api/admin/stores")
 @RequiredArgsConstructor
 public class AdminStoreController {
 

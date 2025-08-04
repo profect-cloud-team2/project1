@@ -1,5 +1,6 @@
 package com.example.demo.user.dto;
 
+import com.example.demo.user.entity.UserEntity;
 import lombok.Data;
 import java.time.LocalDate;
 
@@ -30,4 +31,6 @@ public class SignUpReq {
     // @Pattern(regexp = "^[가-힣A-Za-z0-9]{1,15}$",
     //          message = "닉네임은 한글, 영문, 숫자만 허용하며 최대 15자")
     private String nickname;
+
+    private UserEntity.UserRole role; //권한
 }
