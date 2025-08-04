@@ -34,7 +34,7 @@ public interface StoreRepository extends JpaRepository<StoreEntity, UUID> {
 	);
 
 	Optional<StoreEntity> findByStoreIdAndDeletedAtIsNull(UUID StoreId);
-
+	Optional<StoreEntity> findByBusinessNumAndDeletedAtIsNull(String businessNum);
 }
 
 
