@@ -64,7 +64,6 @@ public class PaymentServiceImpl implements PaymentService {
 	public void confirmPaymentAndSaveOrder(String paymentKey, String orderId, int amount, UUID userId) throws
 		IOException {
 		if (paymentKey.startsWith("tviva")) {
-			System.out.println("테스트 결제 - 결제 확인 건너뛰기");
 		} else {
 			ConfirmPaymentRes res = tossPaymentClient.confirmPayment(paymentKey, UUID.fromString(orderId), amount);
 			if (!"DONE".equals(res.getStatus())) {
