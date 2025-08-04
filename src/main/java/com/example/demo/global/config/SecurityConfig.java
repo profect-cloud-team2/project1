@@ -61,7 +61,8 @@ public class SecurityConfig {
 					"/swagger-resources", "/configuration/**",
 					"/api/search/**", "/api/public/**",
 					"/webjars/**", "/api/payment/success", "/api/payment/fail",
-					"/api/payment/client-key", "/tosspayment.HTML"
+					"/api/payment/client-key", "/tosspayment.HTML",
+					"/api/ai-log"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
