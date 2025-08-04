@@ -55,7 +55,6 @@ public class PaymentController {
 		return ResponseEntity.ok("결제가 취소되었습니다.");
 	}
 
-	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/success")
 	public ResponseEntity<String> paymentSuccess(
 		@RequestParam String orderId,
@@ -76,13 +75,11 @@ public class PaymentController {
 		}
 	}
 
-	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/fail")
 	public ResponseEntity<String> fail() {
 		return ResponseEntity.badRequest().body("결제에 실패했습니다.");
 	}
 
-	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/client-key")
 	public ResponseEntity<String> getClientKey() {
 		return ResponseEntity.ok(clientKey);
