@@ -22,6 +22,7 @@ import com.example.demo.payment.dto.CheckoutPaymentRes;
 import com.example.demo.payment.dto.PaymentHistoryResponseDto;
 import com.example.demo.payment.dto.PaymentReadyReq;
 import com.example.demo.payment.service.PaymentService;
+import com.example.demo.user.entity.UserEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -38,15 +39,13 @@ public class PaymentController {
 	//인증결제
 	@PostMapping("/ready")
 	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody PaymentReadyReq req,
-		@AuthenticationPrincipal String userIdStr) throws IOException {
+		@AuthenticationPrincipal UserEntity user) throws IOException {
 
-		if (userIdStr == null) {
+		if (user == null) {
 			return ResponseEntity.status(401).body(null);
 		}
 
-		UUID userId = UUID.fromString(userIdStr);
-
-		CheckoutPaymentRes response = paymentService.preparePaymentFromCart(req, userId);
+		CheckoutPaymentRes response = paymentService.preparePaymentFromCart(req, user.getUserId());
 		return ResponseEntity.ok(response);
 	}
 
@@ -96,11 +95,10 @@ public class PaymentController {
 
 	// 결제 내역 조회
 	@GetMapping("/history")
-	public ResponseEntity<?> getPaymentHistory(@AuthenticationPrincipal String userIdStr,
-			Pageable pageable) {
+	public ResponseEntity<?> getPaymentHistory(@AuthenticationPrincipal UserEntity user,
+		Pageable pageable) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			Page<PaymentHistoryResponseDto> history = paymentService.getPaymentHistory(userId, pageable);
+			Page<PaymentHistoryResponseDto> history = paymentService.getPaymentHistory(user.getUserId(), pageable);
 			return ResponseEntity.ok(history);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("결제 내역 조회 실패: " + e.getMessage());

@@ -157,7 +157,7 @@ public class CartServiceImpl implements CartService {
 			.store(storeRepository.findById(storeId).orElseThrow())
 			.totalPrice(totalPrice)
 			.requestMessage(requestMessage)
-			.orderStatus(OrderStatus.주문접수)
+			.orderStatus(OrderStatus.RECEIVED)
 			.createdAt(LocalDateTime.now())
 			.createdBy(userId)
 			.build();
