@@ -4,7 +4,10 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.example.demo.ai.entity.AiEntity;
+import com.example.demo.ai.repository.AiRepository;
 import com.example.demo.search.dto.SearchResultDto;
+import com.example.demo.store.dto.AiResponseDto;
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreResponseDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
@@ -26,6 +29,7 @@ public class StoreService {
 	private final StoreRepository storeRepository;
 	private final StoreAiService storeAiService;
 	private final UserRepository userRepository;
+	private final AiRepository aiRepository;
 
 	public Page<SearchResultDto> search(String keyword, int page, int size, String sortBy) {
 		Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -83,9 +87,19 @@ public class StoreService {
 		if (exists) {
 			throw new StoreAlreadyExistsException();
 		}
-		String desc = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
 
-		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, desc);
+		AiResponseDto aiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
+
+		// AI 호출 로그 저장
+		AiEntity log = AiEntity.builder()
+			.apiType("STORE_DESC")
+			.requestJson(aiResponseDto.getRequest())
+			.responseJson(aiResponseDto.getResponse())
+			.createdBy(user.getUserId())
+			.build();
+		aiRepository.save(log);
+
+		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, aiResponseDto.getResponse());
 		entity.setCreatedBy(user.getUserId());
 		StoreEntity saved = storeRepository.save(entity);
 
@@ -108,18 +122,30 @@ public class StoreService {
 		}
 
 		store.updateFromDto(dto);
-		String newDesc = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
-		store.setAiDescription(newDesc);
+
+		AiResponseDto newAiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
+
+		// AI 호출 로그 저장
+		AiEntity log = AiEntity.builder()
+			.apiType("STORE_DESC")
+			.requestJson(newAiResponseDto.getRequest())
+			.responseJson(newAiResponseDto.getResponse())
+			.createdBy(user.getUserId())
+			.build();
+		aiRepository.save(log);
+
+		store.setAiDescription(newAiResponseDto.getResponse());
+
 		store.setUpdatedBy(user.getUserId());
 		store.setUpdatedAt(LocalDateTime.now());
 
 		StoreEntity updated = storeRepository.save(store);
 		return toResponseDto(updated);
 	}
+
 	public Optional<StoreEntity> findById(UUID storeId) {
 		return storeRepository.findById(storeId);
 	}
-
 
 	private StoreResponseDto toResponseDto(StoreEntity entity) {
 		return new StoreResponseDto(
