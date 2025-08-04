@@ -6,25 +6,21 @@ import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreDeleteRequestDto;
 import com.example.demo.store.dto.StoreResponseDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
 import com.example.demo.store.service.StoreService;
+import com.example.demo.user.entity.UserEntity;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/api/store")
 @RequiredArgsConstructor
@@ -39,10 +35,12 @@ public class StoreController {
 		}
 	)
 	@PostMapping
-	public ResponseEntity<?> registerStore(@AuthenticationPrincipal String userId,
-		@Valid @RequestBody StoreCreateRequestDto dto) {
+	public ResponseEntity<?> registerStore(
+		@AuthenticationPrincipal UserEntity user,
+		@Valid @RequestBody StoreCreateRequestDto dto
+	) {
 		try {
-			StoreResponseDto response = storeService.createStore(dto, userId);
+			StoreResponseDto response = storeService.createStore(dto, user);
 			return ResponseEntity.status(201).body(response);
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.status(409).body(e.getMessage());
@@ -58,9 +56,11 @@ public class StoreController {
 	@PatchMapping("/{storeId}")
 	public ResponseEntity<?> updateStore(
 		@PathVariable UUID storeId,
-		@Valid @RequestBody StoreUpdateRequestDto dto) {
+		@Valid @RequestBody StoreUpdateRequestDto dto,
+		@AuthenticationPrincipal UserEntity user // ✅ 추가
+	) {
 		try {
-			StoreResponseDto updated = storeService.updateStore(storeId, dto);
+			StoreResponseDto updated = storeService.updateStore(storeId, dto, user);
 			Map<String, Object> response = new HashMap<>();
 			response.put("message", "가게 정보가 성공적으로 수정되었습니다.");
 			response.put("store", updated);
@@ -69,14 +69,15 @@ public class StoreController {
 			return ResponseEntity.status(404).body(Map.of("message", e.getMessage()));
 		}
 	}
+
 	@DeleteMapping("/{storeId}")
 	public ResponseEntity<?> requestStoreClosure(
 		@PathVariable UUID storeId,
 		@RequestBody StoreDeleteRequestDto dto,
-		@AuthenticationPrincipal String userId
+		@AuthenticationPrincipal UserEntity user
 	) {
 		try {
-			storeService.requestStoreClosure(storeId, userId, dto.getReason());
+			storeService.requestStoreClosure(storeId, user, dto.getReason());
 			return ResponseEntity.ok("폐업 요청이 접수되었습니다.");
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.status(403).body(e.getMessage());

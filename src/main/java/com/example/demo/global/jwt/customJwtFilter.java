@@ -26,14 +26,27 @@ public class customJwtFilter extends GenericFilterBean {
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse,
 		FilterChain filterChain) throws IOException, ServletException {
-		HttpServletRequest httpServletRequest = (HttpServletRequest) servletRequest;
+		HttpServletRequest httpServletRequest = (HttpServletRequest)servletRequest;
 		String jwt = resolveToken(httpServletRequest);
 		String requestURI = httpServletRequest.getRequestURI();
+
+		if (requestURI.startsWith("/swagger") ||
+			requestURI.startsWith("/v3/api-docs") ||
+			requestURI.startsWith("/swagger-ui") ||
+			requestURI.startsWith("/webjars") ||
+			requestURI.startsWith("/configuration")) {
+			filterChain.doFilter(servletRequest, servletResponse);
+			return;
+		}
 
 		if (StringUtils.hasText(jwt) && accessTokenProvider.validateToken(jwt)) {
 			Authentication authentication = accessTokenProvider.getAuthentication(jwt);
 			SecurityContextHolder.getContext().setAuthentication(authentication);
 			logger.debug("Security Context에 '{}' 인증 정보를 저장했습니다, uri: {}", authentication.getName(), requestURI);
+
+			if ("/api/payment/ready".equals(requestURI)) {
+				System.out.println("인증된 사용자 ID: " + authentication.getName());
+			}
 		} else {
 			logger.debug("유효한 JWT 토큰이 없습니다, uri: {}", requestURI);
 		}
@@ -48,6 +61,6 @@ public class customJwtFilter extends GenericFilterBean {
 			return bearerToken.substring(7);
 		}
 
-		return null;
+			return null;
 	}
 }

@@ -36,10 +36,11 @@ public class MenuController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('OWNER')")
     @PatchMapping("{menuId}")
     public ResponseEntity<MenuResponseDto> updateMenu(
-            @PathVariable UUID menuId,
-            @RequestBody MenuUpdateRequestDto requestDto) {
+        @PathVariable UUID menuId,
+        @RequestBody MenuUpdateRequestDto requestDto) {
         return ResponseEntity.ok(menuService.updateMenu(menuId, requestDto));
     }
+
     @PreAuthorize("hasRole('ADMIN') or hasRole('OWNER')")
     @PatchMapping("/{menuId}/delete")
     public ResponseEntity<Void> softDeleteMenu(@PathVariable UUID menuId, Authentication authentication) {
@@ -51,19 +52,24 @@ public class MenuController {
     @PreAuthorize("hasRole('ADMIN') or hasRole('OWNER') or hasRole('CUSTOMER')")
     @PostMapping("/{menuId}/introduction")
     public ResponseEntity<String> generateMenuIntroduction(@PathVariable UUID menuId) {
-        // 1. 메뉴 조회
         MenuEntity menu = menuRepository.findById(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 메뉴를 찾을 수 없습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("해당 메뉴를 찾을 수 없습니다."));
 
-        // 2. AI 요청 DTO 생성
         MenuIntroductionRequestDto request = new MenuIntroductionRequestDto(
-                menu.getName(),
-                menu.getIntroduction()
+            menu.getName(),
+            menu.getIntroduction()
         );
 
-        // 3. AI 클라이언트 호출
         String introduction = menuOpenAiClient.generateIntroduction(request);
-
         return ResponseEntity.ok(introduction);
     }
+
+    // ✅ [GET] storeId 기준으로 메뉴 목록 조회 (캐시 적용)
+    @PreAuthorize("hasRole('ADMIN') or hasRole('OWNER') or hasRole('CUSTOMER')")
+    @GetMapping("/store/{storeId}")
+    public ResponseEntity<List<MenuResponseDto>> getMenusByStore(@PathVariable UUID storeId) {
+        List<MenuResponseDto> menus = menuService.getMenusByStore(storeId);
+        return ResponseEntity.ok(menus);
+    }
 }
+

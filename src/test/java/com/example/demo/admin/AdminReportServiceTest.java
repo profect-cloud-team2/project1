@@ -4,6 +4,7 @@ import com.example.demo.admin.dto.AdminReportRequestDto;
 import com.example.demo.admin.dto.AdminReportResponseDto;
 import com.example.demo.admin.entity.AdminReport;
 import com.example.demo.admin.entity.ReportStatus;
+import com.example.demo.admin.exception.UnauthorizedReportAccessException;
 import com.example.demo.admin.repository.AdminReportRepository;
 import com.example.demo.admin.service.AdminReportService;
 import com.example.demo.user.entity.UserEntity;
@@ -141,7 +142,7 @@ public class AdminReportServiceTest {
 		when(userRepository.findById(nonAdminId)).thenReturn(Optional.of(nonAdmin));
 
 		// when & then
-		assertThrows(AccessDeniedException.class, () -> {
+		assertThrows(UnauthorizedReportAccessException.class, () -> {
 			adminReportService.deleteReport(reportId, nonAdminId);
 		});
 
