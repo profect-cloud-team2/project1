@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.cart.dto.CartItemAddReq;
@@ -41,27 +40,9 @@ public class CartServiceImpl implements CartService {
 	private final OrderItemRepository orderItemRepository;
 	private final StoreRepository storeRepository;
 
-	private UUID getCurrentUserId() {
-		String userIdStr = SecurityContextHolder
-			.getContext()
-			.getAuthentication()
-			.getName();
-		
-		if ("anonymousUser".equals(userIdStr) || userIdStr == null) {
-			return null;
-		}
-		
-		return UUID.fromString(userIdStr);
-	}
-
 	@Override
 	@Transactional
-	public void addItemToCart(CartItemAddReq req) {
-		UUID userId = getCurrentUserId();
-
-		if (userId == null) {
-			System.out.println("JWT에서 추출한 userId가 null입니다");
-		}
+	public void addItemToCart(CartItemAddReq req, UUID userId) {
 
 		UserEntity user = userRepository.findById(userId)
 			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
@@ -110,9 +91,7 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	@Transactional
-	public List<CartRes> getMyCart() {
-		UUID userId = getCurrentUserId();
-		
+	public List<CartRes> getMyCart(UUID userId) {
 		if (userId == null) {
 			throw new IllegalArgumentException("로그인이 필요합니다.");
 		}
@@ -149,31 +128,29 @@ public class CartServiceImpl implements CartService {
 
 	@Override
 	@Transactional
-	public void updateQuantity(UUID cartItemId, int quantity) {
+	public void updateQuantity(UUID cartItemId, int quantity, UUID userId) {
 		CartItemEntity item = cartItemRepository.findById(cartItemId)
 			.orElseThrow(() -> new IllegalArgumentException("장바구니에 항목이 존재하지 않습니다."));
 		item.setQuantity(quantity);
 		item.setUpdatedAt(LocalDateTime.now());
-		item.setUpdatedBy(getCurrentUserId());
+		item.setUpdatedBy(userId);
 	}
 
 	@Override
 	@Transactional
-	public void deleteItem(UUID cartItemId) {
+	public void deleteItem(UUID cartItemId, UUID userId) {
 		cartItemRepository.deleteById(cartItemId);
 	}
 
 	@Transactional
 	public UUID createOrderFromCart(List<UUID> cartItemIds, UUID storeId, String requestMessage, UUID userId) {
-		// 장바구니 아이템들 조회
+
 		List<CartItemEntity> cartItems = cartItemRepository.findAllById(cartItemIds);
-		
-		// 총 금액 계산
+
 		int totalPrice = cartItems.stream()
 			.mapToInt(item -> item.getPrice() * item.getQuantity())
 			.sum();
 
-		// 주문 생성
 		OrderEntity order = OrderEntity.builder()
 			.orderId(UUID.randomUUID())
 			.user(userRepository.findById(userId).orElseThrow())
@@ -187,7 +164,6 @@ public class CartServiceImpl implements CartService {
 
 		orderRepository.save(order);
 
-		// 주문 아이템들 생성
 		for (CartItemEntity cartItem : cartItems) {
 			OrderItemEntity orderItem = OrderItemEntity.builder()
 				.order(order)
@@ -198,7 +174,6 @@ public class CartServiceImpl implements CartService {
 			orderItemRepository.save(orderItem);
 		}
 
-		// 장바구니 아이템들 삭제
 		cartItemRepository.deleteAll(cartItems);
 
 		return order.getOrderId();
