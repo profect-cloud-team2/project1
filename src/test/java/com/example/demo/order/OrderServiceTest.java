@@ -3,7 +3,6 @@ package com.example.demo.order;
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.BDDMockito.*;
-import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -123,7 +122,7 @@ class OrderServiceTest {
 	@DisplayName("주문 상태 업데이트 성공")
 	void updateOrderStatus_Success() {
 		UUID orderId = UUID.randomUUID();
-		OrderStatus newStatus = OrderStatus.배달중;
+		OrderStatus newStatus = OrderStatus.DELIVERING;
 		UUID ownerId = UUID.randomUUID();
 
 		doNothing().when(orderService).updateOrderStatus(orderId, newStatus, ownerId);

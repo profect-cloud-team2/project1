@@ -8,11 +8,11 @@ import com.example.demo.cart.dto.CartRes;
 
 public interface CartService {
 
-	List<CartRes> getMyCart();
+	List<CartRes> getMyCart(UUID userId);
 
-	void addItemToCart(CartItemAddReq req);
+	void addItemToCart(CartItemAddReq req, UUID userId);
 
-	void updateQuantity(UUID cartItemId, int quantity);
+	void updateQuantity(UUID cartItemId, int quantity, UUID userId);
 
-	void deleteItem(UUID cartItemId);
+	void deleteItem(UUID cartItemId, UUID userId);
 }

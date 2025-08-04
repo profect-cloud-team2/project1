@@ -21,6 +21,7 @@ import com.example.demo.order.dto.OrderMenuResponseDto;
 import com.example.demo.order.dto.OrderResponseDto;
 import com.example.demo.order.dto.OrderStatusUpdateReq;
 import com.example.demo.order.service.OrderService;
+import com.example.demo.user.entity.UserEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,10 +33,9 @@ public class OrderController {
 
 	@PostMapping("/create")
 	public ResponseEntity<String> creatOrder(@RequestBody OrderCreateReq req,
-		@AuthenticationPrincipal String userIdStr) {
+		@AuthenticationPrincipal UserEntity user) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			orderService.createOrder(req, userId);
+			orderService.createOrder(req, user.getUserId());
 			return ResponseEntity.ok().body("주문이 성공적으로 저장되었습니다.");
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 저장 실패" + e.getMessage());
@@ -44,11 +44,10 @@ public class OrderController {
 
 	@GetMapping("/store/{storeId}")
 	public ResponseEntity<?> getStoreOrders(@PathVariable UUID storeId,
-		@AuthenticationPrincipal String userIdStr,
+		@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			Page<OrderResponseDto> orders = orderService.getStoreOrders(storeId, userId, pageable);
+			Page<OrderResponseDto> orders = orderService.getStoreOrders(storeId, user.getUserId(), pageable);
 			return ResponseEntity.ok(orders);
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
@@ -58,11 +57,10 @@ public class OrderController {
 	}
 
 	@GetMapping("/my")
-	public ResponseEntity<?> getUserOrders(@AuthenticationPrincipal String userIdStr, 
+	public ResponseEntity<?> getUserOrders(@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			Page<OrderResponseDto> orders = orderService.getUserOrders(userId, pageable);
+			Page<OrderResponseDto> orders = orderService.getUserOrders(user.getUserId(), pageable);
 			return ResponseEntity.ok(orders);
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
@@ -72,11 +70,10 @@ public class OrderController {
 	}
 
 	@GetMapping("/my/detail")
-	public ResponseEntity<?> getMyOrdersWithMenu(@AuthenticationPrincipal String userIdStr,
-			Pageable pageable) {
+	public ResponseEntity<?> getMyOrdersWithMenu(@AuthenticationPrincipal UserEntity user,
+		Pageable pageable) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			Page<OrderMenuResponseDto> orders = orderService.getMyOrdersWithMenu(userId, pageable);
+			Page<OrderMenuResponseDto> orders = orderService.getMyOrdersWithMenu(user.getUserId(), pageable);
 			return ResponseEntity.ok(orders);
 		} catch (Exception e) {
 			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 메뉴 조회 실패: " + e.getMessage());
@@ -85,10 +82,9 @@ public class OrderController {
 
 	@GetMapping("/{orderId}")
 	public ResponseEntity<?> getOrderDetail(@PathVariable UUID orderId,
-			@AuthenticationPrincipal String userIdStr) {
+		@AuthenticationPrincipal UserEntity user) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			OrderDetailResponseDto order = orderService.getOrderDetail(orderId, userId);
+			OrderDetailResponseDto order = orderService.getOrderDetail(orderId, user.getUserId());
 			return ResponseEntity.ok(order);
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
@@ -99,10 +95,9 @@ public class OrderController {
 
 	@PatchMapping("/{orderId}/cancel")
 	public ResponseEntity<String> cancelOrder(@PathVariable UUID orderId,
-		@AuthenticationPrincipal String userIdStr) {
+		@AuthenticationPrincipal UserEntity user) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			orderService.cancelOrder(orderId, userId);
+			orderService.cancelOrder(orderId, user.getUserId());
 			return ResponseEntity.ok("주문이 취소되었습니다.");
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
@@ -114,10 +109,9 @@ public class OrderController {
 	@PatchMapping("/{orderId}/status")
 	public ResponseEntity<String> updateOrderStatus(@PathVariable UUID orderId,
 		@RequestBody OrderStatusUpdateReq req,
-		@AuthenticationPrincipal String userIdStr) {
+		@AuthenticationPrincipal UserEntity user) {
 		try {
-			UUID userId = UUID.fromString(userIdStr);
-			orderService.updateOrderStatus(orderId, req.getOrderStatus(), userId);
+			orderService.updateOrderStatus(orderId, req.getOrderStatus(), user.getUserId());
 			return ResponseEntity.ok("주문 상태가 변경되었습니다.");
 		} catch (IllegalArgumentException e) {
 			return ResponseEntity.badRequest().body(e.getMessage());
