@@ -96,10 +96,14 @@ public class FavoriteService {
 			// 2-2) 활성화 상태라면 -> soft-delete (취소)
 			favorite.setDeletedAt(LocalDateTime.now());
 			favorite.setDeletedBy(userId);
+			favorite.setUpdatedAt(LocalDateTime.now());
+			favorite.setUpdatedBy(userId);
 		} else {
 			// 2-3) soft-deleted 상태라면 -> 복구
 			favorite.setDeletedAt(null);
 			favorite.setDeletedBy(null);
+			favorite.setUpdatedAt(LocalDateTime.now());
+			favorite.setUpdatedBy(userId);
 			// favorite.setUpdatedBy(uid);
 		}
 		// 변경이 감지되어 저장됨 (JPA dirty-checking)

@@ -2,6 +2,7 @@ package com.example.demo.favorite.controller;
 
 import java.util.UUID;
 
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -51,6 +52,7 @@ public class FavoriteController {
 	@GetMapping("/list")
 	public ResponseEntity<Page<FavoriteResponseDto>> getFavorites(
 		@AuthenticationPrincipal UserEntity user,
+		@ParameterObject
 		@PageableDefault(size = 10, sort = "updatedAt", direction = Sort.Direction.DESC)
 		Pageable pageable
 	) {
