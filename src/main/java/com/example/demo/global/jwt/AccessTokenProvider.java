@@ -26,6 +26,8 @@ import io.jsonwebtoken.security.Keys;
 
 import javax.crypto.SecretKey; // JWT 0.12.3: Key 대신 SecretKey 사용
 
+import com.example.demo.user.entity.UserEntity;
+
 @Component
 public class AccessTokenProvider {
 	private final Logger logger = LoggerFactory.getLogger(AccessTokenProvider.class);
@@ -64,12 +66,17 @@ public class AccessTokenProvider {
 			.parseSignedClaims(token)
 			.getPayload();
 
-		String role = claims.get("role", String.class); // JWT의 role claim 추출
+		String userId = claims.getSubject(); // UUID
+		String role = claims.get("role", String.class); // ex. "ADMIN", "CUSTOMER"
 
+		UserEntity user = UserEntity.builder()
+			.userId(java.util.UUID.fromString(userId))
+			.role(UserEntity.UserRole.valueOf(role))
+			.build();
 		Collection<? extends GrantedAuthority> authorities =
-				List.of(new SimpleGrantedAuthority("ROLE_" + role));
+			List.of(new SimpleGrantedAuthority("ROLE_" + role));
 
-		return new UsernamePasswordAuthenticationToken(claims.getSubject(), token, authorities);
+		return new UsernamePasswordAuthenticationToken(user, token, authorities);
 	}
 
 	public boolean validateToken(String token) {

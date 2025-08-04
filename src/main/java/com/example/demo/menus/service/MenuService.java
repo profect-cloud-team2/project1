@@ -8,7 +8,6 @@ import com.example.demo.menus.entity.MenuStatus;
 import com.example.demo.menus.repository.MenuRepository;
 import com.example.demo.store.entity.StoreEntity;
 import com.example.demo.store.repository.StoreRepository;
-import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,55 +22,58 @@ import java.util.*;
 public class MenuService {
 
     private final MenuRepository menuRepository;
-    private final StoreRepository storeRepository;// Store 조회를 위해 필요
+    private final StoreRepository storeRepository;
     private final UserRepository userRepository;
+    private final MenuCacheService menuCacheService; // ✅ Redis 캐시 서비스
 
+    // 메뉴 생성
     public MenuResponseDto createMenu(MenuRequestDto requestDto) {
-
-        // 1. StoreEntity 조회 (존재하지 않으면 예외 발생)
+        // 1. StoreEntity 조회
         StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(requestDto.getStoreId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
 
-        // 2. 중복 체크 (store와 name으로 중복 여부 확인)
+        // 2. 중복 체크
         if (menuRepository.existsByStoreAndNameAndDeletedAtIsNull(store, requestDto.getName())) {
             throw new IllegalArgumentException("이미 등록된 메뉴입니다.");
-}
+        }
 
         // 3. MenuEntity 생성
         MenuEntity menu = MenuEntity.builder()
-                .store(store)  // 객체 연관관계로 설정
-                .name(requestDto.getName())
-                .imgURL(requestDto.getImg())   // 엔티티 필드명에 맞게 수정
-                .price(requestDto.getPrice())
-                .introduction(requestDto.getIntroduction())
-                .requiredTime(requestDto.getRequiredTime())
-                .isAvailable(MenuStatus.ONSALE) // 기본 상태
-                .build();
+            .store(store)
+            .name(requestDto.getName())
+            .imgURL(requestDto.getImg())
+            .price(requestDto.getPrice())
+            .introduction(requestDto.getIntroduction())
+            .requiredTime(requestDto.getRequiredTime())
+            .isAvailable(MenuStatus.ONSALE)
+            .build();
 
         // 4. 저장
         MenuEntity savedMenu = menuRepository.save(menu);
 
-        // 5. Response 변환
-        return MenuResponseDto.builder()
-                .menuId(savedMenu.getMenuId())
-                .storeId(savedMenu.getStore().getStoreId())
-                .name(savedMenu.getName())
-                .img(savedMenu.getImgURL())
-                .price(savedMenu.getPrice())
-                .introduction(savedMenu.getIntroduction())
-                .requiredTime(savedMenu.getRequiredTime())
-                .isAvailable(savedMenu.getIsAvailable())
-                .build();
+        // 5. 캐시 무효화
+        menuCacheService.evictMenus(store.getStoreId().toString());
 
+        // 6. 응답 반환
+        return MenuResponseDto.builder()
+            .menuId(savedMenu.getMenuId())
+            .storeId(savedMenu.getStore().getStoreId())
+            .name(savedMenu.getName())
+            .img(savedMenu.getImgURL())
+            .price(savedMenu.getPrice())
+            .introduction(savedMenu.getIntroduction())
+            .requiredTime(savedMenu.getRequiredTime())
+            .isAvailable(savedMenu.getIsAvailable())
+            .build();
     }
 
-
+    // 메뉴 수정
     public MenuResponseDto updateMenu(UUID menuId, MenuUpdateRequestDto requestDto) {
         // 1. 메뉴 조회
         MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
+            .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
 
-        // 2. 값 업데이트 (null 값 무시)
+        // 2. 수정
         if (requestDto.getName() != null) menu.setName(requestDto.getName());
         if (requestDto.getImgURL() != null) menu.setImgURL(requestDto.getImgURL());
         if (requestDto.getPrice() != null) menu.setPrice(requestDto.getPrice());
@@ -79,7 +81,54 @@ public class MenuService {
         if (requestDto.getIsAvailable() != null) {
             menu.setIsAvailable(MenuStatus.ONSALE);
         }
+
+        // 3. 캐시 무효화
+        menuCacheService.evictMenus(menu.getStore().getStoreId().toString());
+
+        // 4. 응답 반환
         return MenuResponseDto.builder()
+            .menuId(menu.getMenuId())
+            .storeId(menu.getStore().getStoreId())
+            .name(menu.getName())
+            .img(menu.getImgURL())
+            .price(menu.getPrice())
+            .introduction(menu.getIntroduction())
+            .requiredTime(menu.getRequiredTime())
+            .isAvailable(menu.getIsAvailable())
+            .build();
+    }
+
+    // 메뉴 소프트 삭제
+    public void softDeleteMenu(UUID menuId, UUID userId) {
+        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
+
+        menu.setDeletedAt(LocalDateTime.now());
+        menu.setDeletedBy(userId);
+
+        // 캐시 무효화
+        menuCacheService.evictMenus(menu.getStore().getStoreId().toString());
+
+        menuRepository.save(menu);
+    }
+
+    // 메뉴 목록 조회 (Redis 캐시 적용)
+    public List<MenuResponseDto> getMenusByStore(UUID storeId) {
+        // 1. Redis에서 캐시 조회
+        List<MenuResponseDto> cachedMenus = menuCacheService.getCachedMenus(storeId.toString());
+        if (cachedMenus != null) {
+            return cachedMenus;
+        }
+
+        // 2. DB에서 조회
+        StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
+            .orElseThrow(() -> new IllegalArgumentException("해당 매장이 존재하지 않습니다."));
+
+        List<MenuEntity> menus = menuRepository.findByStoreAndDeletedAtIsNull(store);
+
+
+        List<MenuResponseDto> result = menus.stream()
+            .map(menu -> MenuResponseDto.builder()
                 .menuId(menu.getMenuId())
                 .storeId(menu.getStore().getStoreId())
                 .name(menu.getName())
@@ -88,24 +137,12 @@ public class MenuService {
                 .introduction(menu.getIntroduction())
                 .requiredTime(menu.getRequiredTime())
                 .isAvailable(menu.getIsAvailable())
-                .build();
+                .build())
+            .toList();
+
+        // 3. Redis에 저장
+        menuCacheService.cacheMenus(storeId.toString(), result);
+
+        return result;
     }
-
-    @Transactional
-    public void softDeleteMenu(UUID menuId, UUID userId) { //String loginId
-
-        //UserEntity user = userRepository.findByLoginId(loginId)
-        //        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 메뉴 조회
-        MenuEntity menu = menuRepository.findByMenuIdAndDeletedAtIsNull(menuId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 메뉴가 존재하지 않습니다."));
-
-        // 삭제 처리
-        menu.setDeletedAt(LocalDateTime.now());
-        menu.setDeletedBy(userId); // UUID 저장
-        menuRepository.save(menu);
-    }
-
-
 }

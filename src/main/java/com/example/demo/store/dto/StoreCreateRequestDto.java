@@ -61,7 +61,7 @@ public class StoreCreateRequestDto {
 	@Schema(description = "가게 소개", example = "든든한 한 끼를 제공하는 도시락 전문점입니다.")
 	private String introduction;
 
-	@Schema(description = "가게 운영 상태", example = "ACTIVE")
+	@Schema(description = "가게 운영 상태", example = "OPEN")
 	@NotNull(message = "가게 운영 상태는 필수 입력 값입니다.")
 	private StoreStatus isAvailable;
 }

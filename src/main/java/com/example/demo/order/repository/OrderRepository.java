@@ -14,6 +14,7 @@ import com.example.demo.order.entity.OrderEntity;
 import com.example.demo.order.entity.OrderStatus;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, UUID> {
+	boolean existsByOrderIdAndUser_UserIdAndStore_StoreId(UUID orderId, UUID userId, UUID storeId);
 	Page<OrderEntity> findAllByOrderStatusAndDeletedAtIsNull(OrderStatus orderStatus, Pageable pageable);
 
 	// 가게별 주문 페이지 조회

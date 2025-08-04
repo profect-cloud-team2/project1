@@ -1,8 +1,10 @@
 package com.example.demo.store.service;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.example.demo.search.dto.SearchResultDto;
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreResponseDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
@@ -14,6 +16,11 @@ import com.example.demo.user.repository.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 @RequiredArgsConstructor
@@ -24,7 +31,23 @@ public class StoreService {
 	private final StoreAiService storeAiService;
 	private final UserRepository userRepository;
 
-	public StoreResponseDto createStore(StoreCreateRequestDto dto, String userId) {
+	public Page<SearchResultDto> search(String keyword, int page, int size, String sortBy) {
+		Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+		if ("modified".equalsIgnoreCase(sortBy)) {
+			sort = Sort.by(Sort.Direction.DESC, "updatedAt");
+		}
+
+		if (size != 10 && size != 30 && size != 50) {
+			size = 10;
+		}
+
+		Pageable pageable = PageRequest.of(page, size, sort);
+		Page<StoreEntity> resultPage = storeRepository.searchVisibleStoresByKeyword(keyword, pageable);
+
+		return resultPage.map(SearchResultDto::fromEntity);
+	}
+
+	public StoreResponseDto createStore(StoreCreateRequestDto dto, UserEntity user) {
 		boolean exists = storeRepository.existsByNameIgnoreCaseAndAddress1IgnoreCaseAndAddress2IgnoreCaseAndDeletedAtIsNull(
 			dto.getName().trim(), dto.getAddress1().trim(), dto.getAddress2().trim()
 		);
@@ -32,13 +55,7 @@ public class StoreService {
 			throw new IllegalArgumentException("이미 등록된 가게입니다.");
 		}
 
-		String desc = storeAiService.generateAiDescription(
-			dto.getName(),
-			dto.getCategory()
-		);
-
-		UserEntity user = userRepository.findByUserIdAndDeletedAtIsNull(UUID.fromString(userId))
-			.orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+		String desc = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
 
 		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, desc);
 		entity.setCreatedBy(user.getUserId());
@@ -47,16 +64,17 @@ public class StoreService {
 		return toResponseDto(saved);
 	}
 
-
-	public StoreResponseDto updateStore(UUID storeId, StoreUpdateRequestDto dto) {
+	public StoreResponseDto updateStore(UUID storeId, StoreUpdateRequestDto dto, UserEntity user) {
 		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("해당 가게가 없습니다."));
 
+		// 소유자 확인
+		if (!store.getUser().getUserId().equals(user.getUserId())) {
+			throw new IllegalArgumentException("본인의 가게만 수정할 수 있습니다.");
+		}
+
 		store.updateFromDto(dto);
-		String newDesc = storeAiService.generateAiDescription(
-			dto.getName(),
-			dto.getCategory()  // "한식"
-		);
+		String newDesc = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
 		store.setAiDescription(newDesc);
 
 		StoreEntity updated = storeRepository.save(store);
@@ -87,26 +105,24 @@ public class StoreService {
 			entity.getIsAvailable()
 		);
 	}
-	public void requestStoreClosure(UUID storeId, String userId, String reason) {
+
+	public void requestStoreClosure(UUID storeId, UserEntity user, String reason) {
 		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
-		// 소유자 검증
-		if (!store.getUser().getUserId().toString().equals(userId)) {
+		if (!store.getUser().getUserId().equals(user.getUserId())) {
 			throw new IllegalArgumentException("본인의 가게만 폐업 신청할 수 있습니다.");
 		}
 
-		// 이미 폐업 요청 or 폐업된 상태인지 체크
 		if (store.getIsAvailable() == StoreStatus.CLOSED_REQUESTED || store.getIsAvailable() == StoreStatus.CLOSED) {
 			throw new IllegalStateException("이미 폐업 요청 중이거나 폐업된 가게입니다.");
 		}
 
-		// soft delete 방식으로 상태 변경
-		store.softDelete(StoreStatus.CLOSED_REQUESTED, reason, UUID.fromString(userId));
+		store.softDelete(StoreStatus.CLOSED_REQUESTED, reason, user.getUserId());
 		storeRepository.save(store);
 	}
-	// 폐업 요청 승인 (관리자 권한)
-	public void approveStoreClosure(UUID storeId, String adminId) {
+
+	public void approveStoreClosure(UUID storeId, UserEntity admin) {
 		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
@@ -114,10 +130,11 @@ public class StoreService {
 			throw new IllegalStateException("해당 가게는 폐업 요청 상태가 아닙니다.");
 		}
 
-		store.softDelete(StoreStatus.CLOSED, "관리자 승인", UUID.fromString(adminId));
+		store.softDelete(StoreStatus.CLOSED, "관리자 승인", admin.getUserId());
 		storeRepository.save(store);
 	}
-	public void rejectStoreClosure(UUID storeId, String adminId, String reason) {
+
+	public void rejectStoreClosure(UUID storeId, UserEntity admin, String reason) {
 		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
@@ -125,17 +142,16 @@ public class StoreService {
 			throw new IllegalStateException("폐업 신청 상태가 아닙니다.");
 		}
 
-		// 폐업 신청 거절 → 상태 복구
 		store.setIsAvailable(StoreStatus.OPEN);
 		store.setIntroduction("[폐업 거절] " + reason);
 		store.setDeletedAt(null);
 	}
-	// 관리자 강제 삭제
-	public void forceDeleteStore(UUID storeId, String adminId, String reason) {
+
+	public void forceDeleteStore(UUID storeId, UserEntity admin, String reason) {
 		StoreEntity store = storeRepository.findByStoreIdAndDeletedAtIsNull(storeId)
 			.orElseThrow(() -> new IllegalArgumentException("가게를 찾을 수 없습니다."));
 
-		store.softDelete(StoreStatus.DELETED, reason, UUID.fromString(adminId));
+		store.softDelete(StoreStatus.DELETED, reason, admin.getUserId());
 		storeRepository.save(store);
 	}
 }

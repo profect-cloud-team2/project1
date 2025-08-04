@@ -7,12 +7,15 @@ import com.example.demo.admin.dto.AdminReportRequestDto;
 import com.example.demo.admin.dto.AdminReportResponseDto;
 import com.example.demo.admin.dto.AdminReportUpdateRequestDto;
 import com.example.demo.admin.service.AdminReportService;
+import com.example.demo.user.entity.UserEntity;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/reports")
@@ -23,10 +26,9 @@ public class AdminReportController {
 	@PostMapping
 	public ResponseEntity<AdminReportResponseDto> createReport(
 		@RequestBody AdminReportRequestDto dto,
-		@AuthenticationPrincipal String userId
+		@AuthenticationPrincipal UserEntity user
 	) {
-		UUID reporterId = UUID.fromString(userId);
-		AdminReportResponseDto response = adminReportService.createReport(dto, reporterId);
+		AdminReportResponseDto response = adminReportService.createReport(dto, user.getUserId());
 		return ResponseEntity.ok(response);
 	}
 
@@ -40,19 +42,18 @@ public class AdminReportController {
 	public ResponseEntity<AdminReportResponseDto> updateReportStatus(
 		@PathVariable UUID reportId,
 		@RequestBody AdminReportUpdateRequestDto dto,
-		@AuthenticationPrincipal String userId // 관리자 ID
+		@AuthenticationPrincipal UserEntity user
 	) {
-		UUID adminId = UUID.fromString(userId);
-		AdminReportResponseDto response = adminReportService.updateReportStatus(reportId, dto.getStatus(), adminId);
+		AdminReportResponseDto response = adminReportService.updateReportStatus(reportId, dto.getStatus(), user.getUserId());
 		return ResponseEntity.ok(response);
 	}
 
 	@DeleteMapping("/{reportId}")
 	public ResponseEntity<Map<String, String>> deleteReport(
 		@PathVariable UUID reportId,
-		@AuthenticationPrincipal String userId // 관리자 ID
+		@AuthenticationPrincipal UserEntity user
 	) {
-		adminReportService.deleteReport(reportId, UUID.fromString(userId));
+		adminReportService.deleteReport(reportId, user.getUserId());
 		return ResponseEntity.ok().body(Map.of("message", "신고 내역이 삭제되었습니다."));
 	}
 }

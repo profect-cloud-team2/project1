@@ -18,12 +18,20 @@ import com.example.demo.global.jwt.JwtAccessDeniedHandler;
 import com.example.demo.global.jwt.JwtAuthenticationEntryPoint;
 import com.example.demo.global.jwt.JwtSecurityConfig;
 
+import io.swagger.v3.oas.annotations.enums.SecuritySchemeType;
+import io.swagger.v3.oas.annotations.security.SecurityScheme;
 import lombok.RequiredArgsConstructor;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 @RequiredArgsConstructor
+@SecurityScheme(
+	name = "bearerAuth",
+	type = SecuritySchemeType.HTTP,
+	scheme = "bearer",
+	bearerFormat = "JWT"
+)
 public class SecurityConfig {
 	private final AccessTokenProvider accessTokenProvider;
 	private final CorsFilter corsFilter;
@@ -51,6 +59,7 @@ public class SecurityConfig {
 					"/swagger-ui/**", "/swagger-ui.html",
 					"/v3/api-docs/**", "/swagger-resources/**",
 					"/swagger-resources", "/configuration/**",
+          "/api/search/**", "/api/public/**"
 					"/webjars/**", "/api/payment/success", "/api/payment/fail",
 					"/api/payment/client-key", "/tosspayment.HTML"
                 ).permitAll()
