@@ -12,6 +12,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.demo.store.entity.StoreEntity;
+import com.example.demo.store.entity.StoreStatus;
 
 @Repository
 public interface StoreRepository extends JpaRepository<StoreEntity, UUID> {
@@ -26,10 +27,8 @@ public interface StoreRepository extends JpaRepository<StoreEntity, UUID> {
 		"OR LOWER(s.category) LIKE LOWER(CONCAT('%', :keyword, '%')) " +
 		"OR LOWER(m.name) LIKE LOWER(CONCAT('%', :keyword, '%')))")
 	Page<StoreEntity> searchVisibleStoresByKeyword(@Param("keyword") String keyword, Pageable pageable);
+	Page<StoreEntity> findAllByIsAvailable(StoreStatus status, Pageable pageable);
 
-	/**
-	 * storeId가 userId(사장)의 가게로 등록되어 있는지 여부
-	 */
 	boolean existsByStoreIdAndUserUserId(
 		UUID storeId, UUID userId
 	);

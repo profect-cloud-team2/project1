@@ -7,4 +7,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class OwnerReplyRequestDto {
 	private String replyContent;
+
+	public OwnerReplyRequestDto(String replyContent) {
+		this.replyContent = replyContent;
+	}
 }

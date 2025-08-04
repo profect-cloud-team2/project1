@@ -27,9 +27,7 @@ public class ReviewService {
 	private final StoreRepository storeRepository;
 	private final OrderRepository orderRepository;
 
-	// 리뷰 생성
 	public UUID createReview(ReviewRequestDto dto, UUID userId) {
-		// 본인의 주문인지 확인
 		boolean isValidOrder = orderRepository.existsByOrderIdAndUser_UserIdAndStore_StoreId(
 			dto.getOrderId(), userId, dto.getStoreId()
 		);
@@ -37,7 +35,6 @@ public class ReviewService {
 			throw new ReviewInvalidOrderException();
 		}
 
-		// 해당 주문에 대한 리뷰가 이미 있는지 확인
 		if (reviewRepository.existsByOrderIdAndDeletedAtIsNull(dto.getOrderId())) {
 			throw new ReviewAlreadyExistsException();
 		}
@@ -55,15 +52,12 @@ public class ReviewService {
 		return reviewRepository.save(entity).getReviewId();
 	}
 
-
-	// 특정 가게 리뷰 조회
 	public List<ReviewResponseDto> getReviewsByStore(UUID storeId) {
 		return reviewRepository.findByStoreIdAndDeletedAtIsNull(storeId).stream()
 			.map(this::toDto)
 			.collect(Collectors.toList());
 	}
 
-	// 내 리뷰 조회
 	public List<ReviewResponseDto> getReviewsByUser(UUID userId) {
 		List<ReviewEntity> reviews = reviewRepository.findByUserIdAndDeletedAtIsNull(userId);
 
@@ -76,13 +70,11 @@ public class ReviewService {
 			.collect(Collectors.toList());
 	}
 
-	// 리뷰 단건 조회
 	public ReviewEntity getReviewById(UUID reviewId) {
 		return reviewRepository.findById(reviewId)
 			.orElseThrow(ReviewNotFoundException::new);
 	}
 
-	// 리뷰 삭제 (soft delete)
 	public void deleteReview(UUID reviewId, UUID deletedBy) {
 		ReviewEntity review = getReviewById(reviewId);
 		review.setDeletedAt(LocalDateTime.now());
@@ -90,11 +82,9 @@ public class ReviewService {
 		reviewRepository.save(review);
 	}
 
-	// 사장님 답글 작성 또는 수정
 	public void writeOwnerReply(UUID reviewId, UUID ownerId, String replyContent) {
 		ReviewEntity review = getReviewById(reviewId);
 
-		// 사장님이 해당 리뷰의 가게 주인인지 검증
 		if (!storeRepository.existsByStoreIdAndUserUserId(review.getStoreId(), ownerId)) {
 			throw new UnauthorizedOwnerReplyException();
 		}
@@ -104,12 +94,9 @@ public class ReviewService {
 		review.setUpdatedAt(LocalDateTime.now());
 		reviewRepository.save(review);
 	}
-
-	// 사장님 답글 삭제
 	public void deleteOwnerReply(UUID reviewId, UUID ownerId) {
 		ReviewEntity review = getReviewById(reviewId);
 
-		// 소유자 검증
 		if (!storeRepository.existsByStoreIdAndUserUserId(review.getStoreId(), ownerId)) {
 			throw new UnauthorizedOwnerReplyException();
 		}
@@ -120,7 +107,6 @@ public class ReviewService {
 		reviewRepository.save(review);
 	}
 
-	// Entity → DTO 변환
 	private ReviewResponseDto toDto(ReviewEntity r) {
 		return ReviewResponseDto.builder()
 			.reviewId(r.getReviewId())
