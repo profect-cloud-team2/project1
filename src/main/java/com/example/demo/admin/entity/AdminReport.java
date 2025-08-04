@@ -38,14 +38,14 @@ public class AdminReport {
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "reporter_id", nullable = false)
-	private UserEntity reporter; // 신고자 (유저 or 점주), p_user_info 참조
+	private UserEntity reporter;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "reported_id")
 	private UserEntity reported;
 
 	@Column(name = "report_type", nullable = false)
-	private String reportType; // CUSTOMER / STORE / REVIEW
+	private String reportType;
 
 	@Column(name = "content", nullable = false, columnDefinition = "TEXT")
 	private String content;

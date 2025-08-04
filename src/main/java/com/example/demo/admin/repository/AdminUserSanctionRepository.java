@@ -8,7 +8,6 @@ import java.util.UUID;
 
 public interface AdminUserSanctionRepository extends JpaRepository<AdminUserSanction, UUID> {
 
-	// 삭제되지 않은 제재 목록
 	List<AdminUserSanction> findAllByDeletedAtIsNull();
 
 }

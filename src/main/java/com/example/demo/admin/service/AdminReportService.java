@@ -10,6 +10,7 @@ import com.example.demo.admin.exception.UnauthorizedReportAccessException;
 import com.example.demo.admin.repository.AdminReportRepository;
 import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
+import com.example.demo.admin.exception.UserNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
@@ -60,7 +61,7 @@ public class AdminReportService {
 
 	public void deleteReport(UUID reportId, UUID userId) {
 		UserEntity user = userRepository.findById(userId)
-			.orElseThrow(() -> new IllegalArgumentException("유저가 존재하지 않습니다.")); // 이건 사용자 공통 예외로 남겨도 괜찮습니다
+			.orElseThrow(UserNotFoundException::new);
 
 		if (user.getRole() != UserEntity.UserRole.ADMIN) {
 			throw new UnauthorizedReportAccessException();

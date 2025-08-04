@@ -1,5 +1,7 @@
 package com.example.demo.store.entity;
 
+import com.fasterxml.jackson.annotation.JsonValue;
+
 import lombok.Getter;
 
 @Getter
@@ -10,8 +12,7 @@ public enum StoreStatus {
 	CLOSED_REQUESTED("폐업 신청"),
 	CLOSED("폐업 완료"),
 	DELETED("삭제됨");
-
-
+	@JsonValue
 	private final String description;
 
 	StoreStatus(String description) {
