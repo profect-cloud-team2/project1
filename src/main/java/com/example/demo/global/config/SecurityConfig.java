@@ -59,7 +59,7 @@ public class SecurityConfig {
 					"/swagger-ui/**", "/swagger-ui.html",
 					"/v3/api-docs/**", "/swagger-resources/**",
 					"/swagger-resources", "/configuration/**",
-          "/api/search/**", "/api/public/**"
+					"/api/search/**", "/api/public/**",
 					"/webjars/**", "/api/payment/success", "/api/payment/fail",
 					"/api/payment/client-key", "/tosspayment.HTML"
                 ).permitAll()
