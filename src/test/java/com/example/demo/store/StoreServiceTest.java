@@ -89,10 +89,9 @@ public class StoreServiceTest {
 		createDto.setOpenTime("11:00");
 		createDto.setClosedTime("23:00");
 		createDto.setIntroduction("테스트 가게 소개");
-		createDto.setIsAvailable(StoreStatus.OPEN);
 
 		// 등록 실행
-		var saved = storeService.createStore(createDto, testUser.getUserId().toString());
+		var saved = storeService.createStore(createDto, testUser);
 
 		assertThat(saved.getName()).isEqualTo("테스트치킨");
 		assertThat(saved.getAiDescription()).isEqualTo("AI 설명 예시");
@@ -123,7 +122,7 @@ public class StoreServiceTest {
 			.thenReturn(Optional.of(existing));
 
 		// 수정 실행
-		storeService.updateStore(saved.getStoreId(), updateDto);
+		storeService.updateStore(saved.getStoreId(), updateDto, testUser);
 
 		// 검증
 		ArgumentCaptor<StoreEntity> captor = ArgumentCaptor.forClass(StoreEntity.class);

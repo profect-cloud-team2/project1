@@ -7,6 +7,8 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.cart.entity.CartEntity;
@@ -19,9 +21,6 @@ import com.example.demo.order.entity.OrderStatus;
 import com.example.demo.order.repository.OrderItemRepository;
 import com.example.demo.order.repository.OrderRepository;
 import com.example.demo.payment.client.TossPaymentClient;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-
 import com.example.demo.payment.dto.CancelPaymentReq;
 import com.example.demo.payment.dto.CancelPaymentRes;
 import com.example.demo.payment.dto.CheckoutPaymentReq;
@@ -92,7 +91,7 @@ public class PaymentServiceImpl implements PaymentService {
 			.user(user)
 			.store(cartItems.get(0).getMenu().getStore())
 			.totalPrice(amount) // 테스트에서는 전달받은 amount 사용
-			.orderStatus(OrderStatus.주문접수)
+			.orderStatus(OrderStatus.RECEIVED)
 			.requestMessage("요청사항 없음")
 			.createdAt(LocalDateTime.now())
 			.createdBy(user.getUserId())

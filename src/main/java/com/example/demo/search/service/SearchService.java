@@ -1,5 +1,6 @@
 package com.example.demo.search.service;
 
+import com.example.demo.review.repository.ReviewRepository;
 import com.example.demo.search.dto.SearchResultDto;
 import com.example.demo.store.entity.StoreEntity;
 import com.example.demo.store.repository.StoreRepository;
@@ -13,6 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SearchService {
 	private final StoreRepository storeRepository;
+	private final ReviewRepository reviewRepository;
 
 	public Page<SearchResultDto> search(String keyword, int page, int size, String sortBy) {
 		Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, convertSortKey(sortBy)));
@@ -20,7 +22,11 @@ public class SearchService {
 		Page<StoreEntity> storePage = storeRepository.searchVisibleStoresByKeyword(keyword, pageable);
 
 		List<SearchResultDto> resultDtoList = storePage.stream()
-			.map(SearchResultDto::fromEntity)
+			.map(store -> {
+				double avgRating = reviewRepository.calculateAverageRatingByStoreId(store.getStoreId())
+					.orElse(0.0);
+				return SearchResultDto.fromEntity(store, avgRating);
+			})
 			.toList();
 
 		return new PageImpl<>(resultDtoList, pageable, storePage.getTotalElements());
