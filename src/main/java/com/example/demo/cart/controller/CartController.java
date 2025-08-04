@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,7 @@ public class CartController {
 
 	private final CartService cartService;
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PostMapping("/add")
 	public ResponseEntity<String> addItems(@RequestBody @Valid CartItemAddReq req,
 		@AuthenticationPrincipal UserEntity user) {
@@ -41,6 +43,7 @@ public class CartController {
 		return ResponseEntity.ok("장바구니에 추가되었습니다.");
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping
 	public ResponseEntity<List<CartRes>> getMyCart(@AuthenticationPrincipal UserEntity user) {
 		if (user == null) {
@@ -50,6 +53,7 @@ public class CartController {
 		return ResponseEntity.ok(myCart);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PatchMapping("/items/{cartItemId}")
 	public ResponseEntity<String> updateQuantity(@PathVariable UUID cartItemId, @RequestParam int quantity,
 		@AuthenticationPrincipal UserEntity user) {
@@ -60,6 +64,7 @@ public class CartController {
 		return ResponseEntity.ok("수량이 변경되었습니다.");
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@DeleteMapping("/items/{cartItemId}")
 	public ResponseEntity<String> deleteItem(@PathVariable UUID cartItemId, @AuthenticationPrincipal UserEntity user) {
 		if (user == null) {

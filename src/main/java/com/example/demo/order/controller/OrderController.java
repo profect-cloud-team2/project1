@@ -5,6 +5,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -31,6 +32,7 @@ import lombok.RequiredArgsConstructor;
 public class OrderController {
 	private final OrderService orderService;
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PostMapping("/create")
 	public ResponseEntity<String> creatOrder(@RequestBody OrderCreateReq req,
 		@AuthenticationPrincipal UserEntity user) {
@@ -41,6 +43,7 @@ public class OrderController {
 		return ResponseEntity.ok().body("주문이 성공적으로 저장되었습니다.");
 	}
 
+	@PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
 	@GetMapping("/store/{storeId}")
 	public ResponseEntity<Page<OrderResponseDto>> getStoreOrders(@PathVariable UUID storeId,
 		@AuthenticationPrincipal UserEntity user,
@@ -52,6 +55,7 @@ public class OrderController {
 		return ResponseEntity.ok(orders);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/my")
 	public ResponseEntity<Page<OrderResponseDto>> getUserOrders(@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
@@ -62,6 +66,7 @@ public class OrderController {
 		return ResponseEntity.ok(orders);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/my/detail")
 	public ResponseEntity<Page<OrderMenuResponseDto>> getMyOrdersWithMenu(@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
@@ -72,6 +77,7 @@ public class OrderController {
 		return ResponseEntity.ok(orders);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/{orderId}")
 	public ResponseEntity<OrderDetailResponseDto> getOrderDetail(@PathVariable UUID orderId,
 		@AuthenticationPrincipal UserEntity user) {
@@ -82,6 +88,7 @@ public class OrderController {
 		return ResponseEntity.ok(order);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PatchMapping("/{orderId}/cancel")
 	public ResponseEntity<String> cancelOrder(@PathVariable UUID orderId,
 		@AuthenticationPrincipal UserEntity user) {
@@ -92,6 +99,7 @@ public class OrderController {
 		return ResponseEntity.ok("주문이 취소되었습니다.");
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PatchMapping("/{orderId}/status")
 	public ResponseEntity<String> updateOrderStatus(@PathVariable UUID orderId,
 		@RequestBody OrderStatusUpdateReq req,

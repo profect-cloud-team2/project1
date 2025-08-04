@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +37,7 @@ public class PaymentController {
 	@Value("${payment.toss.client-key}")
 	private String clientKey;
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PostMapping("/ready")
 	public ResponseEntity<CheckoutPaymentRes> ready(@RequestBody PaymentReadyReq req,
 		@AuthenticationPrincipal UserEntity user) throws IOException {
@@ -46,12 +48,14 @@ public class PaymentController {
 		return ResponseEntity.ok(response);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PostMapping("/{paymentKey}/cancel")
 	public ResponseEntity<String> cancel(@RequestBody CancelPaymentReq req) throws IOException {
 		paymentService.requestCancelPayment(req);
 		return ResponseEntity.ok("결제가 취소되었습니다.");
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/success")
 	public ResponseEntity<String> paymentSuccess(
 		@RequestParam String orderId,
@@ -72,16 +76,19 @@ public class PaymentController {
 		}
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/fail")
 	public ResponseEntity<String> fail() {
 		return ResponseEntity.badRequest().body("결제에 실패했습니다.");
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/client-key")
 	public ResponseEntity<String> getClientKey() {
 		return ResponseEntity.ok(clientKey);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/history")
 	public ResponseEntity<Page<PaymentHistoryResponseDto>> getPaymentHistory(@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
