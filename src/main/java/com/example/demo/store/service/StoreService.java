@@ -4,7 +4,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.example.demo.ai.entity.AiEntity;
+import com.example.demo.ai.repository.AiRepository;
 import com.example.demo.search.dto.SearchResultDto;
+import com.example.demo.store.dto.AiResponseDto;
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreResponseDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
@@ -30,6 +33,7 @@ public class StoreService {
 	private final StoreRepository storeRepository;
 	private final StoreAiService storeAiService;
 	private final UserRepository userRepository;
+	private final AiRepository aiRepository;
 
 	public Page<SearchResultDto> search(String keyword, int page, int size, String sortBy) {
 		Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
@@ -49,15 +53,25 @@ public class StoreService {
 
 	public StoreResponseDto createStore(StoreCreateRequestDto dto, UserEntity user) {
 		boolean exists = storeRepository.existsByNameIgnoreCaseAndAddress1IgnoreCaseAndAddress2IgnoreCaseAndDeletedAtIsNull(
-			dto.getName().trim(), dto.getAddress1().trim(), dto.getAddress2().trim()
+			dto.getName().trim(), dto.
+				getAddress1().trim(), dto.getAddress2().trim()
 		);
 		if (exists) {
 			throw new IllegalArgumentException("이미 등록된 가게입니다.");
 		}
 
-		String desc = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
+		AiResponseDto aiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
 
-		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, desc);
+		// AI 호출 로그 저장
+		AiEntity log = AiEntity.builder()
+			.apiType("STORE_DESC")
+			.requestJson(aiResponseDto.getRequest())
+			.responseJson(aiResponseDto.getResponse())
+			.createdBy(user.getUserId())
+			.build();
+		aiRepository.save(log);
+
+		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, aiResponseDto.getResponse());
 		entity.setCreatedBy(user.getUserId());
 		StoreEntity saved = storeRepository.save(entity);
 
@@ -74,8 +88,19 @@ public class StoreService {
 		}
 
 		store.updateFromDto(dto);
-		String newDesc = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
-		store.setAiDescription(newDesc);
+
+		AiResponseDto newAiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
+
+		// AI 호출 로그 저장
+		AiEntity log = AiEntity.builder()
+			.apiType("STORE_DESC")
+			.requestJson(newAiResponseDto.getRequest())
+			.responseJson(newAiResponseDto.getResponse())
+			.createdBy(user.getUserId())
+			.build();
+		aiRepository.save(log);
+
+		store.setAiDescription(newAiResponseDto.getResponse());
 
 		StoreEntity updated = storeRepository.save(store);
 		return toResponseDto(updated);
