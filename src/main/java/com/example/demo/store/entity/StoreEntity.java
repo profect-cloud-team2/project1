@@ -143,7 +143,8 @@ public class StoreEntity {
 		entity.aiDescription = aiDescription;
 		entity.totalProfit = 0.0f;
 		entity.orderCount = 0.0f;
-		entity.isAvailable = StoreStatus.OPEN; // 기본값 설정 필요 시
+		// ✅ 기본 등록 상태 설정: 관리자 승인 전까지는 "등록심사중"
+		entity.isAvailable = StoreStatus.UNDER_REVIEW;
 		// createdBy는 서비스 레이어에서 설정
 		return entity;
 	}
