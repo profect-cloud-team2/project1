@@ -1,5 +1,6 @@
 package com.example.demo.cart.repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -12,7 +13,10 @@ import com.example.demo.cart.entity.CartEntity;
 
 @Repository
 public interface CartRepository extends JpaRepository<CartEntity, UUID> {
-	@Query("SELECT c FROM CartEntity c LEFT JOIN FETCH c.items WHERE c.user.userId = :userId")
+	@Query("SELECT c FROM CartEntity c LEFT JOIN FETCH c.items ci LEFT JOIN FETCH ci.menu m LEFT JOIN FETCH m.store WHERE c.user.userId = :userId")
 	Optional<CartEntity> findWithItemsByUserId(@Param("userId") UUID userId);
+	
+	@Query("SELECT c FROM CartEntity c LEFT JOIN FETCH c.items ci LEFT JOIN FETCH ci.menu m LEFT JOIN FETCH m.store")
+	List<CartEntity> findAll();
 
 }
