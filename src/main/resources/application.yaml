@@ -51,3 +51,16 @@ payment:
     api-url: ${TOSS_API_URL}
     secret-key: ${TOSS_SECRET_KEY}
     client-key: ${TOSS_CLIENT_KEY}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,threaddump,loggers
+  endpoint:
+    prometheus:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true

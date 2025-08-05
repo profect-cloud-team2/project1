@@ -16,6 +16,7 @@ public class MenuResponseDto {
     private String name;
     private String img;
     private Integer price;
+    private String aiDescription;
     private String introduction;
     private Integer requiredTime;
     private MenuStatus isAvailable;

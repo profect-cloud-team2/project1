@@ -89,7 +89,6 @@ public class StoreServiceTest {
 		createDto.setOpenTime("11:00");
 		createDto.setClosedTime("23:00");
 		createDto.setIntroduction("테스트 가게 소개");
-		createDto.setIsAvailable(StoreStatus.OPEN);
 
 		// 등록 실행
 		var saved = storeService.createStore(createDto, testUser);

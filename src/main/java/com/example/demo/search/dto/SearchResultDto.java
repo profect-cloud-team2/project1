@@ -16,13 +16,25 @@ public class SearchResultDto {
 	private String storeName;
 	private String category;
 	private String imgURL;
+	private double averageRating;
 
 	public static SearchResultDto fromEntity(StoreEntity store) {
 		return new SearchResultDto(
 			store.getStoreId(),
 			store.getName(),
 			store.getCategory().getDescription(),
-			store.getImgURL()
+			store.getImgURL(),
+			0.0
+		);
+	}
+
+	public static SearchResultDto fromEntity(StoreEntity store, double averageRating) {
+		return new SearchResultDto(
+			store.getStoreId(),
+			store.getName(),
+			store.getCategory().getDescription(),
+			store.getImgURL(),
+			averageRating
 		);
 	}
 }

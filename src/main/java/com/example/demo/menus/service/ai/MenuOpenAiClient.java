@@ -1,53 +1,63 @@
 package com.example.demo.menus.service.ai;
 
-import com.example.demo.menus.dto.MenuIntroductionRequestDto;
-import com.example.demo.menus.dto.MenuIntroductionResponseDto;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Value;
+import com.example.demo.menus.dto.MenuAiResponseDto;
+import io.github.cdimascio.dotenv.Dotenv;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @Component
-@RequiredArgsConstructor
 public class MenuOpenAiClient {
-    @Value("${openai.api-key}")
-    private String apiKey;
 
-    @Value("${openai.model}")
-    private String model;
+    private final RestTemplate restTemplate;
+    private final String apiKey;
 
-    private final RestTemplate restTemplate = new RestTemplate();
+    public MenuOpenAiClient() {
+        this.restTemplate = new RestTemplate();
+        Dotenv dotenv = Dotenv.load();
+        this.apiKey = dotenv.get("OPENAI_API_KEY");
+    }
 
-    public String generateIntroduction(MenuIntroductionRequestDto request) {
-        String prompt = String.format(
-                "메뉴 이름: %s\n설명: %s\n이 메뉴에 대해 고객이 식욕을 느낄 수 있도록 간단하고 매력적인 소개 문장을 작성해줘.",
-                request.getName(), request.getIntroduction()
-        );
-
-        // 요청 Body 구성
-        Map<String, Object> body = new HashMap<>();
-        body.put("model", model);
-        body.put("messages", new Object[]{
-                Map.of("role", "system", "content", "You are a helpful assistant."),
-                Map.of("role", "user", "content", prompt)
-        });
+    public String getCompletion(String prompt) {
+        String url = "https://api.openai.com/v1/chat/completions";
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(apiKey);
 
-        HttpEntity<Map<String, Object>> entity = new HttpEntity<>(body, headers);
+        Map<String, Object> requestBody = Map.of(
+                "model", "gpt-4o",
+                "messages", List.of(
+                        Map.of("role", "system", "content",
+                                "당신은 고객의 시선을 끌 수 있는 참신하고 매력적인 메뉴 소개 문구를 작성하는 마케팅 전문가입니다. 소개는 50자 이내로 간결하면서도 눈길을 끌 수 있어야 합니다."),
+                        Map.of("role", "user", "content", prompt)
+                ),
+                "temperature", 0.7
+        );
 
-        ResponseEntity<MenuIntroductionResponseDto> response =
-                restTemplate.exchange("https://api.openai.com/v1/chat/completions",
-                        HttpMethod.POST, entity, MenuIntroductionResponseDto.class);
+        HttpEntity<Map<String, Object>> httpEntity = new HttpEntity<>(requestBody, headers);
 
-        return response.getBody() != null && !response.getBody().getChoices().isEmpty()
-                ? response.getBody().getChoices().get(0).getMessage().getContent()
-                : "소개를 생성할 수 없습니다.";
+        try {
+            ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    httpEntity,
+                    new ParameterizedTypeReference<>() {}
+            );
+
+            List<?> choices = (List<?>) response.getBody().get("choices");
+            Map<?, ?> message = (Map<?, ?>) ((Map<?, ?>) choices.get(0)).get("message");
+            String content = message.get("content").toString().trim();
+
+            return content.trim();
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

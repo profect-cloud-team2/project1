@@ -36,8 +36,8 @@ public class FavoriteService {
 
 	// 찜한 가게 1건 조회
 	@Transactional(readOnly = true)
-	public FavoriteResponseDto getMyFavorite(String userId) {
-		FavoriteEntity favoriteEntity = favoriteRepository.findByUserUserIdAndDeletedAtIsNull(UUID.fromString(userId));
+	public FavoriteResponseDto getMyFavorite(UUID userId) {
+		FavoriteEntity favoriteEntity = favoriteRepository.findByUserUserIdAndDeletedAtIsNull(userId);
 
 		FavoriteResponseDto responseDto =
 			FavoriteResponseDto.builder()
@@ -50,14 +50,13 @@ public class FavoriteService {
 
 	// 찜한 가게 목록 조회 (페이징)
 	@Transactional(readOnly = true)
-	public Page<FavoriteResponseDto> getMyFavorites(String userId, Pageable pageable) {
-		UUID uid = UUID.fromString(userId);
+	public Page<FavoriteResponseDto> getMyFavorites(UUID userId, Pageable pageable) {
 		// Page<FavoriteEntity> pageEntity =
 		// 	favoriteRepository.findAllByUserUserIdAndDeletedAtIsNull(uid, pageable);
 
 		// COALESCE 를 쓴 쿼리 호출
 		Page<FavoriteEntity> pageEntity =
-			favoriteRepository.findAllByUserOrderByLastModifiedDesc(uid, pageable);
+			favoriteRepository.findAllByUserOrderByLastModifiedDesc(userId, pageable);
 
 		// entity -> DTO 맵핑
 		return pageEntity.map(entity ->
@@ -69,8 +68,7 @@ public class FavoriteService {
 	}
 
 	@Transactional
-	public void toggleFavorite(String userId, String storeId) {
-		UUID uid = UUID.fromString(userId);
+	public void toggleFavorite(UUID userId, String storeId) {
 		UUID storeid = UUID.fromString(storeId);
 
 		// 1) 스토어가 존재하는지 체크(404)
@@ -78,16 +76,16 @@ public class FavoriteService {
 			.orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "가게를 찾을 수 없습니다."));
 
 		// 2) 기존 찜 정보 조회
-		Optional<FavoriteEntity> opt = favoriteRepository.findByUserUserIdAndStoreStoreId(uid, storeid);
+		Optional<FavoriteEntity> opt = favoriteRepository.findByUserUserIdAndStoreStoreId(userId, storeid);
 
 		if (opt.isEmpty()) {
 			// 2-1) 기록이 없으면 신규 생성 (신규 생성만 save() 호출)
-			UserEntity user = userRepository.getById(uid);
+			UserEntity user = userRepository.getById(userId);
 			FavoriteEntity newFavorite = FavoriteEntity.builder()
 				// .favoriteId(UUID.randomUUID())
 				.user(user)
 				.store(store)
-				.createdBy(uid)
+				.createdBy(userId)
 				.build();
 			favoriteRepository.save(newFavorite);  // persist() → INSERT
 			return;
@@ -97,11 +95,15 @@ public class FavoriteService {
 		if (favorite.getDeletedAt() == null) {
 			// 2-2) 활성화 상태라면 -> soft-delete (취소)
 			favorite.setDeletedAt(LocalDateTime.now());
-			favorite.setDeletedBy(uid);
+			favorite.setDeletedBy(userId);
+			favorite.setUpdatedAt(LocalDateTime.now());
+			favorite.setUpdatedBy(userId);
 		} else {
 			// 2-3) soft-deleted 상태라면 -> 복구
 			favorite.setDeletedAt(null);
 			favorite.setDeletedBy(null);
+			favorite.setUpdatedAt(LocalDateTime.now());
+			favorite.setUpdatedBy(userId);
 			// favorite.setUpdatedBy(uid);
 		}
 		// 변경이 감지되어 저장됨 (JPA dirty-checking)
@@ -112,11 +114,10 @@ public class FavoriteService {
 	 * 소유가 아니면 AccessDeniedException 발생
 	 */
 	@Transactional
-	public long getFavoriteCount(String userId, UUID storeId) {
-		UUID uid = UUID.fromString(userId);
+	public long getFavoriteCount(UUID userId, UUID storeId) {
 		// UUID storeid = UUID.fromString(storeId);
 		// 1) 소유권 확인
-		boolean isOwner = storeRepository.existsByStoreIdAndUserUserId(storeId, uid);
+		boolean isOwner = storeRepository.existsByStoreIdAndUserUserId(storeId, userId);
 		if (!isOwner) {
 			throw new AccessDeniedException(
 				String.format("userId=%s 가 storeId=%s 의 소유자가 아닙니다.", userId, storeId)
