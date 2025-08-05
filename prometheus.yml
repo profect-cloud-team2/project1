@@ -1,0 +1,14 @@
+#global:
+#  scrape_interval: 10s
+
+scrape_configs:
+  - job_name: 'springboot-app'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    static_configs:
+      - targets: ['host.docker.internal:8080']   # docker-compose 네트워크 내 서비스 이름:포트
+
+#  - job_name: 'redis'
+#    static_configs:
+#      - targets: ['6379:6379']
+#    metrics_path: /metrics       # Redis-exporter 쓸 경우

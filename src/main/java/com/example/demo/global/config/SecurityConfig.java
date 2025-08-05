@@ -62,7 +62,8 @@ public class SecurityConfig {
 					"/api/search/**", "/api/public/**",
 					"/webjars/**", "/api/payment/success", "/api/payment/fail",
 					"/api/payment/client-key", "/tosspayment.HTML",
-					"/api/ai-log"
+					"/api/ai-log",
+					"/actuator/prometheus"
                 ).permitAll()
                 .anyRequest().authenticated()
             )
