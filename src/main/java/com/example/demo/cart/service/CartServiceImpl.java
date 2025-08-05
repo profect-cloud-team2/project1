@@ -12,6 +12,9 @@ import com.example.demo.cart.dto.CartItemRes;
 import com.example.demo.cart.dto.CartRes;
 import com.example.demo.cart.entity.CartEntity;
 import com.example.demo.cart.entity.CartItemEntity;
+import com.example.demo.cart.exception.CartItemNotFoundException;
+import com.example.demo.cart.exception.CartNotFoundException;
+import com.example.demo.cart.exception.InvalidQuantityException;
 import com.example.demo.cart.repository.CartItemRepository;
 import com.example.demo.cart.repository.CartRepository;
 import com.example.demo.menus.entity.MenuEntity;
@@ -45,7 +48,7 @@ public class CartServiceImpl implements CartService {
 	public void addItemToCart(CartItemAddReq req, UUID userId) {
 
 		UserEntity user = userRepository.findById(userId)
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+			.orElseThrow(() -> new CartNotFoundException());
 
 		CartEntity cart = cartRepository.findWithItemsByUserId(userId)
 			.orElseGet(() -> {
@@ -61,18 +64,18 @@ public class CartServiceImpl implements CartService {
 		if (hasStore) {
 			UUID currentStoreId = cart.getItems().get(0).getMenu().getStore().getStoreId();
 			if (!currentStoreId.equals(req.getStoreId())) {
-				throw new IllegalArgumentException("장바구니에는 하나의 가게 메뉴만 담을 수 있습니다. 기존 장바구니를 비워주세요.");
+				throw new InvalidQuantityException();
 			}
 		}
 
 		for (CartItemAddReq.MenuItem item : req.getMenuItems()) {
 			MenuEntity menu = menuRepository.findById(item.getMenuId())
-				.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메뉴입니다."));
+				.orElseThrow(() -> new CartItemNotFoundException());
 
 			cartItemRepository.findByCartCartIdAndMenuMenuId(cart.getCartId(), item.getMenuId())
 				.ifPresentOrElse(existing -> {
 					existing.setQuantity(existing.getQuantity() + item.getQuantity());
-					existing.setPrice(menu.getPrice()); // DB의 실제 가격 사용
+					existing.setPrice(menu.getPrice());
 					existing.setUpdatedAt(LocalDateTime.now());
 					existing.setUpdatedBy(userId);
 					cartItemRepository.save(existing);
@@ -81,7 +84,7 @@ public class CartServiceImpl implements CartService {
 					newItem.setCart(cart);
 					newItem.setMenu(menu);
 					newItem.setQuantity(item.getQuantity());
-					newItem.setPrice(menu.getPrice()); // DB의 실제 가격 사용
+					newItem.setPrice(menu.getPrice());
 					newItem.setCreatedAt(LocalDateTime.now());
 					newItem.setCreatedBy(userId);
 					cartItemRepository.save(newItem);
@@ -93,11 +96,11 @@ public class CartServiceImpl implements CartService {
 	@Transactional
 	public List<CartRes> getMyCart(UUID userId) {
 		if (userId == null) {
-			throw new IllegalArgumentException("로그인이 필요합니다.");
+			throw new CartNotFoundException();
 		}
 
 		UserEntity user = userRepository.findById(userId)
-			.orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+			.orElseThrow(() -> new CartNotFoundException());
 
 		CartEntity cart = cartRepository.findWithItemsByUserId(userId)
 			.orElseGet(() -> {
@@ -129,8 +132,11 @@ public class CartServiceImpl implements CartService {
 	@Override
 	@Transactional
 	public void updateQuantity(UUID cartItemId, int quantity, UUID userId) {
+		if (quantity <= 0) {
+			throw new InvalidQuantityException();
+		}
 		CartItemEntity item = cartItemRepository.findById(cartItemId)
-			.orElseThrow(() -> new IllegalArgumentException("장바구니에 항목이 존재하지 않습니다."));
+			.orElseThrow(() -> new CartItemNotFoundException());
 		item.setQuantity(quantity);
 		item.setUpdatedAt(LocalDateTime.now());
 		item.setUpdatedBy(userId);
@@ -139,6 +145,8 @@ public class CartServiceImpl implements CartService {
 	@Override
 	@Transactional
 	public void deleteItem(UUID cartItemId, UUID userId) {
+		CartItemEntity item = cartItemRepository.findById(cartItemId)
+			.orElseThrow(() -> new CartItemNotFoundException());
 		cartItemRepository.deleteById(cartItemId);
 	}
 

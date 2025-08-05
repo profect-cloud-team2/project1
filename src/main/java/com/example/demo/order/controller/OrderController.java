@@ -4,8 +4,8 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -20,6 +20,7 @@ import com.example.demo.order.dto.OrderDetailResponseDto;
 import com.example.demo.order.dto.OrderMenuResponseDto;
 import com.example.demo.order.dto.OrderResponseDto;
 import com.example.demo.order.dto.OrderStatusUpdateReq;
+import com.example.demo.order.exception.UnauthorizedException;
 import com.example.demo.order.service.OrderService;
 import com.example.demo.user.entity.UserEntity;
 
@@ -31,92 +32,82 @@ import lombok.RequiredArgsConstructor;
 public class OrderController {
 	private final OrderService orderService;
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PostMapping("/create")
 	public ResponseEntity<String> creatOrder(@RequestBody OrderCreateReq req,
 		@AuthenticationPrincipal UserEntity user) {
-		try {
-			orderService.createOrder(req, user.getUserId());
-			return ResponseEntity.ok().body("주문이 성공적으로 저장되었습니다.");
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 저장 실패" + e.getMessage());
+		if (user == null) {
+			throw new UnauthorizedException();
 		}
+		orderService.createOrder(req, user.getUserId());
+		return ResponseEntity.ok().body("주문이 성공적으로 저장되었습니다.");
 	}
 
+	@PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
 	@GetMapping("/store/{storeId}")
-	public ResponseEntity<?> getStoreOrders(@PathVariable UUID storeId,
+	public ResponseEntity<Page<OrderResponseDto>> getStoreOrders(@PathVariable UUID storeId,
 		@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
-		try {
-			Page<OrderResponseDto> orders = orderService.getStoreOrders(storeId, user.getUserId(), pageable);
-			return ResponseEntity.ok(orders);
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 조회 실패: " + e.getMessage());
+		if (user == null) {
+			throw new UnauthorizedException();
 		}
+		Page<OrderResponseDto> orders = orderService.getStoreOrders(storeId, user.getUserId(), pageable);
+		return ResponseEntity.ok(orders);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/my")
-	public ResponseEntity<?> getUserOrders(@AuthenticationPrincipal UserEntity user,
+	public ResponseEntity<Page<OrderResponseDto>> getUserOrders(@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
-		try {
-			Page<OrderResponseDto> orders = orderService.getUserOrders(user.getUserId(), pageable);
-			return ResponseEntity.ok(orders);
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 조회 실패: " + e.getMessage());
+		if (user == null) {
+			throw new UnauthorizedException();
 		}
+		Page<OrderResponseDto> orders = orderService.getUserOrders(user.getUserId(), pageable);
+		return ResponseEntity.ok(orders);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/my/detail")
-	public ResponseEntity<?> getMyOrdersWithMenu(@AuthenticationPrincipal UserEntity user,
+	public ResponseEntity<Page<OrderMenuResponseDto>> getMyOrdersWithMenu(@AuthenticationPrincipal UserEntity user,
 		Pageable pageable) {
-		try {
-			Page<OrderMenuResponseDto> orders = orderService.getMyOrdersWithMenu(user.getUserId(), pageable);
-			return ResponseEntity.ok(orders);
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 메뉴 조회 실패: " + e.getMessage());
+		if (user == null) {
+			throw new UnauthorizedException();
 		}
+		Page<OrderMenuResponseDto> orders = orderService.getMyOrdersWithMenu(user.getUserId(), pageable);
+		return ResponseEntity.ok(orders);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@GetMapping("/{orderId}")
-	public ResponseEntity<?> getOrderDetail(@PathVariable UUID orderId,
+	public ResponseEntity<OrderDetailResponseDto> getOrderDetail(@PathVariable UUID orderId,
 		@AuthenticationPrincipal UserEntity user) {
-		try {
-			OrderDetailResponseDto order = orderService.getOrderDetail(orderId, user.getUserId());
-			return ResponseEntity.ok(order);
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 상세 조회 실패: " + e.getMessage());
+		if (user == null) {
+			throw new UnauthorizedException();
 		}
+		OrderDetailResponseDto order = orderService.getOrderDetail(orderId, user.getUserId());
+		return ResponseEntity.ok(order);
 	}
 
+	@PreAuthorize("hasRole('CUSTOMER') or hasRole('ADMIN')")
 	@PatchMapping("/{orderId}/cancel")
 	public ResponseEntity<String> cancelOrder(@PathVariable UUID orderId,
 		@AuthenticationPrincipal UserEntity user) {
-		try {
-			orderService.cancelOrder(orderId, user.getUserId());
-			return ResponseEntity.ok("주문이 취소되었습니다.");
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 취소 실패: " + e.getMessage());
+		if (user == null) {
+			throw new UnauthorizedException();
 		}
+		orderService.cancelOrder(orderId, user.getUserId());
+		return ResponseEntity.ok("주문이 취소되었습니다.");
 	}
 
+	@PreAuthorize("hasRole('OWNER') or hasRole('ADMIN')")
 	@PatchMapping("/{orderId}/status")
 	public ResponseEntity<String> updateOrderStatus(@PathVariable UUID orderId,
 		@RequestBody OrderStatusUpdateReq req,
 		@AuthenticationPrincipal UserEntity user) {
-		try {
-			orderService.updateOrderStatus(orderId, req.getOrderStatus(), user.getUserId());
-			return ResponseEntity.ok("주문 상태가 변경되었습니다.");
-		} catch (IllegalArgumentException e) {
-			return ResponseEntity.badRequest().body(e.getMessage());
-		} catch (Exception e) {
-			return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("주문 상태 변경 실패: " + e.getMessage());
+		if (user == null) {
+			throw new UnauthorizedException();
 		}
+		orderService.updateOrderStatus(orderId, req.getOrderStatus(), user.getUserId());
+		return ResponseEntity.ok("주문 상태가 변경되었습니다.");
 	}
 }

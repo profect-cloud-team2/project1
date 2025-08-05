@@ -1,5 +1,20 @@
 package com.example.demo.store;
 
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+import java.time.LocalDate;
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
 import com.example.demo.store.entity.Category;
@@ -10,21 +25,6 @@ import com.example.demo.store.service.StoreAiService;
 import com.example.demo.store.service.StoreService;
 import com.example.demo.user.entity.UserEntity;
 import com.example.demo.user.repository.UserRepository;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-
-import java.time.LocalDate;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
 
 public class StoreServiceTest {
 
