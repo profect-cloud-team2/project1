@@ -7,7 +7,7 @@ import java.util.UUID;
 import com.example.demo.ai.entity.AiEntity;
 import com.example.demo.ai.repository.AiRepository;
 import com.example.demo.search.dto.SearchResultDto;
-import com.example.demo.store.dto.AiResponseDto;
+import com.example.demo.store.dto.StoreAiResponseDto;
 import com.example.demo.store.dto.StoreCreateRequestDto;
 import com.example.demo.store.dto.StoreResponseDto;
 import com.example.demo.store.dto.StoreUpdateRequestDto;
@@ -88,18 +88,18 @@ public class StoreService {
 			throw new StoreAlreadyExistsException();
 		}
 
-		AiResponseDto aiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
+		StoreAiResponseDto storeAiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
 
 		// AI 호출 로그 저장
 		AiEntity log = AiEntity.builder()
 			.apiType("STORE_DESC")
-			.requestJson(aiResponseDto.getRequest())
-			.responseJson(aiResponseDto.getResponse())
+			.requestJson(storeAiResponseDto.getRequest())
+			.responseJson(storeAiResponseDto.getResponse())
 			.createdBy(user.getUserId())
 			.build();
 		aiRepository.save(log);
 
-		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, aiResponseDto.getResponse());
+		StoreEntity entity = StoreEntity.fromCreateDto(dto, user, storeAiResponseDto.getResponse());
 		entity.setCreatedBy(user.getUserId());
 		StoreEntity saved = storeRepository.save(entity);
 
@@ -123,9 +123,8 @@ public class StoreService {
 
 		store.updateFromDto(dto);
 
-		AiResponseDto newAiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
+		StoreAiResponseDto newAiResponseDto = storeAiService.generateAiDescription(dto.getName(), dto.getCategory());
 
-		// AI 호출 로그 저장
 		AiEntity log = AiEntity.builder()
 			.apiType("STORE_DESC")
 			.requestJson(newAiResponseDto.getRequest())

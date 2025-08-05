@@ -48,6 +48,9 @@ public class MenuEntity {
     @Column(name = "is_available", nullable = false)
     private MenuStatus isAvailable;
 
+    @Column(name = "ai_description")
+    private String aiDescription;
+
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
