@@ -17,8 +17,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,11 +47,9 @@ public class UserEntity {
 	@Column(name = "birthdate", nullable = false)
 	private LocalDate birthdate;
 
-	@Pattern(regexp = "^\\d{10,11}$")
 	@Column(name = "phone", nullable = false, length = 255)
 	private String phone;
 
-	@Email
 	@Column(name = "email", nullable = false, length = 255)
 	private String email;
 
