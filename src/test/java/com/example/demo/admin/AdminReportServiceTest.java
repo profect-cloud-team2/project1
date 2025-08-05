@@ -40,7 +40,6 @@ public class AdminReportServiceTest {
 
 	@Test
 	void createReport_정상생성() {
-		// given
 		UUID reporterId = UUID.randomUUID();
 		UUID reportedId = UUID.randomUUID();
 
@@ -56,10 +55,8 @@ public class AdminReportServiceTest {
 			return report;
 		});
 
-		// when
 		AdminReportResponseDto response = adminReportService.createReport(dto, reporterId);
 
-		// then
 		ArgumentCaptor<AdminReport> captor = ArgumentCaptor.forClass(AdminReport.class);
 		verify(adminReportRepository).save(captor.capture());
 
@@ -78,7 +75,6 @@ public class AdminReportServiceTest {
 
 	@Test
 	void deleteReport_관리자가_삭제요청하면_정상작동() {
-		// given
 		UUID reportId = UUID.randomUUID();
 		UUID adminId = UUID.randomUUID();
 
@@ -109,10 +105,8 @@ public class AdminReportServiceTest {
 		when(userRepository.findById(adminId)).thenReturn(Optional.of(admin));
 		when(adminReportRepository.findById(reportId)).thenReturn(Optional.of(report));
 
-		// when
 		adminReportService.deleteReport(reportId, adminId);
 
-		// then
 		assertThat(report.getDeletedAt()).isNotNull();
 		assertThat(report.getDeletedBy()).isEqualTo(adminId);
 
@@ -122,7 +116,6 @@ public class AdminReportServiceTest {
 
 	@Test
 	void deleteReport_관리자아닌경우_예외발생() {
-		// given
 		UUID reportId = UUID.randomUUID();
 		UUID nonAdminId = UUID.randomUUID();
 
@@ -141,7 +134,6 @@ public class AdminReportServiceTest {
 
 		when(userRepository.findById(nonAdminId)).thenReturn(Optional.of(nonAdmin));
 
-		// when & then
 		assertThrows(UnauthorizedReportAccessException.class, () -> {
 			adminReportService.deleteReport(reportId, nonAdminId);
 		});

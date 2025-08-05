@@ -58,7 +58,6 @@ public class StoreServiceTest {
 			.role(UserEntity.UserRole.OWNER)
 			.build();
 
-		// ✅ 핵심: createStore에서 사용하는 메서드 정확히 mock 처리
 		when(userRepository.findByUserIdAndDeletedAtIsNull(any(UUID.class)))
 			.thenReturn(Optional.of(testUser));
 
@@ -90,13 +89,11 @@ public class StoreServiceTest {
 		createDto.setClosedTime("23:00");
 		createDto.setIntroduction("테스트 가게 소개");
 
-		// 등록 실행
 		var saved = storeService.createStore(createDto, testUser);
 
 		assertThat(saved.getName()).isEqualTo("테스트치킨");
 		assertThat(saved.getAiDescription()).isEqualTo("AI 설명 예시");
 
-		// 수정 요청 DTO
 		StoreUpdateRequestDto updateDto = new StoreUpdateRequestDto();
 		updateDto.setName("수정된치킨");
 		updateDto.setCategory(Category.KOREAN);
@@ -107,9 +104,8 @@ public class StoreServiceTest {
 		updateDto.setOpenTime("10:00");
 		updateDto.setClosedTime("22:00");
 		updateDto.setIntroduction("수정된 가게 소개");
-		updateDto.setIsAvailable(StoreStatus.CLOSED);
+		updateDto.setIsAvailable(StoreStatus.OPEN);
 
-		// 수정용 가짜 가게 엔티티
 		StoreEntity existing = StoreEntity.builder()
 			.storeId(saved.getStoreId())
 			.user(testUser)
@@ -121,10 +117,8 @@ public class StoreServiceTest {
 		when(storeRepository.findByStoreIdAndDeletedAtIsNull(saved.getStoreId()))
 			.thenReturn(Optional.of(existing));
 
-		// 수정 실행
 		storeService.updateStore(saved.getStoreId(), updateDto, testUser);
 
-		// 검증
 		ArgumentCaptor<StoreEntity> captor = ArgumentCaptor.forClass(StoreEntity.class);
 		verify(storeRepository, atLeast(2)).save(captor.capture());
 

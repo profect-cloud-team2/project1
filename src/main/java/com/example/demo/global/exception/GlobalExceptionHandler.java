@@ -13,6 +13,7 @@ import com.example.demo.admin.exception.SanctionNotFoundException;
 import com.example.demo.admin.exception.UnauthorizedReportAccessException;
 import com.example.demo.review.exception.ReviewAlreadyExistsException;
 import com.example.demo.review.exception.ReviewNotFoundException;
+import com.example.demo.review.exception.UnauthorizedOwnerReplyException;
 import com.example.demo.review.exception.UnauthorizedReviewAccessException;
 import com.example.demo.search.exception.SearchException;
 import com.example.demo.store.exception.*;
@@ -131,4 +132,10 @@ public class GlobalExceptionHandler {
             "message", ex.getMessage()
         ));
     }
+    @ExceptionHandler(UnauthorizedOwnerReplyException.class)
+    public ResponseEntity<ErrorResponse> handleUnauthorizedOwnerReply(UnauthorizedOwnerReplyException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+            .body(new ErrorResponse("REVIEW_OWNER_UNAUTHORIZED", ex.getMessage()));
+    }
+
 }

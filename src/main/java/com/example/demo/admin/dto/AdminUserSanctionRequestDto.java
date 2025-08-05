@@ -4,6 +4,7 @@ import com.example.demo.admin.entity.SanctionStatus;
 
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

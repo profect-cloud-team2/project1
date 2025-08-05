@@ -38,8 +38,8 @@ class SearchControllerTest {
 	void setUp() {
 		MockitoAnnotations.openMocks(this);
 		mockMvc = MockMvcBuilders.standaloneSetup(searchController)
-			.setControllerAdvice(new GlobalExceptionHandler()) // ✅ 예외 핸들러 등록
-			.alwaysDo(print()) // ✅ 테스트 결과 콘솔 출력
+			.setControllerAdvice(new GlobalExceptionHandler())
+			.alwaysDo(print())
 			.build();
 	}
 
@@ -64,7 +64,7 @@ class SearchControllerTest {
 				.param("page", "0")
 				.param("size", "10")
 				.param("sortBy", "created"))
-			.andExpect(status().isBadRequest()) // ✅ 예외 발생 시 GlobalExceptionHandler 작동 확인
+			.andExpect(status().isBadRequest())
 			.andExpect(jsonPath("$.code").value("SEARCH_ERROR"))
 			.andExpect(jsonPath("$.message").value("검색어를 입력해주세요."));	}
 }

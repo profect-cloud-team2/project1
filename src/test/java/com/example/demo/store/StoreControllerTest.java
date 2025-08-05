@@ -120,6 +120,6 @@ public class StoreControllerTest {
 				.content(objectMapper.writeValueAsString(updateDto))
 				.requestAttr("user", testUser))
 			.andExpect(status().isForbidden())
-			.andExpect(jsonPath("$.message").value("권한이 없습니다."));
+			.andExpect(jsonPath("$.message").value("본인의 가게만 수정할 수 있습니다."));
 	}
 }

@@ -33,7 +33,6 @@ public class AdminUserSanctionServiceTest {
 
 	@Test
 	void createSanction_정상생성() {
-		// given
 		UUID userId = UUID.randomUUID();
 		UUID adminId = UUID.randomUUID();
 		UUID sanctionId = UUID.randomUUID();
@@ -53,15 +52,12 @@ public class AdminUserSanctionServiceTest {
 			return sanction;
 		});
 
-		// when
 		AdminUserSanctionResponseDto response = service.createSanction(requestDto, adminId);
 
-		// then
 		ArgumentCaptor<AdminUserSanction> captor = ArgumentCaptor.forClass(AdminUserSanction.class);
 		verify(repository).save(captor.capture());
 		AdminUserSanction saved = captor.getValue();
 
-		// assertions
 		assertThat(saved.getUserId()).isEqualTo(userId);
 		assertThat(saved.getCreatedBy()).isEqualTo(adminId);
 		assertThat(saved.getSanctionStatus()).isEqualTo(SanctionStatus.SUSPEND);
@@ -71,7 +67,6 @@ public class AdminUserSanctionServiceTest {
 		assertThat(response.getUserId()).isEqualTo(userId);
 		assertThat(response.getSanctionId()).isEqualTo(sanctionId);
 
-		// 🧪 로그 출력
 		System.out.println("🧪 제재 생성 테스트 결과");
 		System.out.println("유저 ID: " + response.getUserId());
 		System.out.println("제재 ID: " + response.getSanctionId());

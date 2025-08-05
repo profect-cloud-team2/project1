@@ -1,57 +1,68 @@
 package com.example.demo.review;
 
+import com.example.demo.global.exception.GlobalExceptionHandler;
+import com.example.demo.review.controller.ReviewController;
 import com.example.demo.review.dto.OwnerReplyRequestDto;
+import com.example.demo.review.service.ReviewService;
 import com.example.demo.user.entity.UserEntity;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.util.ReflectionTestUtils;
 
-import java.util.List;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
 import java.util.UUID;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@SpringBootTest
-@AutoConfigureMockMvc
 class ReviewControllerTest {
 
-	@Autowired
 	private MockMvc mockMvc;
 
-	@Autowired
-	private ObjectMapper objectMapper;
+	@Mock
+	private ReviewService reviewService;
+
+	@InjectMocks
+	private ReviewController reviewController;
+
+	private final ObjectMapper objectMapper = new ObjectMapper();
+
+	@BeforeEach
+	void setUp() {
+		MockitoAnnotations.openMocks(this);
+		mockMvc = MockMvcBuilders.standaloneSetup(reviewController)
+			.setControllerAdvice(new GlobalExceptionHandler()) // 전역 예외 처리기 연결
+			.build();
+	}
 
 	@Test
-	@DisplayName("사장이 아닌 유저가 답글 작성 시 403 예외 발생")
-	void 답글_권한없음_예외() throws Exception {
-		// given
-		OwnerReplyRequestDto dto = new OwnerReplyRequestDto();
-		ReflectionTestUtils.setField(dto, "replyContent", "사장님의 답글입니다.");
+	void HTTP_PATCH_사장이_아닌_유저가_답글_작성시_403_예외() throws Exception {
+		UUID reviewId = UUID.randomUUID();
+		OwnerReplyRequestDto requestDto = new OwnerReplyRequestDto("사장님 답글입니다.");
 
-		String json = objectMapper.writeValueAsString(dto);
+		UserEntity nonOwner = UserEntity.builder()
+			.userId(UUID.randomUUID())
+			.name("고객")
+			.role(UserEntity.UserRole.CUSTOMER)
+			.build();
 
-		UUID mockUserId = UUID.randomUUID();
-		UserEntity mockUser = new UserEntity();
-		ReflectionTestUtils.setField(mockUser, "userId", mockUserId);
-		ReflectionTestUtils.setField(mockUser, "role", UserEntity.UserRole.CUSTOMER);
+		TestingAuthenticationToken authentication = new TestingAuthenticationToken(nonOwner, null);
+		authentication.setAuthenticated(true);
 
-		UsernamePasswordAuthenticationToken authentication =
-			new UsernamePasswordAuthenticationToken(mockUser, null, List.of());
-
-		// when & then
-		mockMvc.perform(patch("/api/reviews/{reviewId}/owner-reply", UUID.randomUUID())
-				.with(SecurityMockMvcRequestPostProcessors.authentication(authentication))
+		mockMvc.perform(patch("/api/reviews/{reviewId}/owner-reply", reviewId)
+				.principal(authentication)
 				.contentType(MediaType.APPLICATION_JSON)
-				.content(json))
-			.andExpect(status().isForbidden()); // 403 권한 없음
+				.content(objectMapper.writeValueAsString(requestDto)))
+			.andExpect(status().isForbidden())
+			.andExpect(content().contentType(MediaType.APPLICATION_JSON))
+			.andExpect(jsonPath("$.code").value("REVIEW_OWNER_UNAUTHORIZED"))
+			.andExpect(jsonPath("$.message").value("사장님 본인만 해당 리뷰에 답글을 작성/수정/삭제할 수 있습니다."));
 	}
 }

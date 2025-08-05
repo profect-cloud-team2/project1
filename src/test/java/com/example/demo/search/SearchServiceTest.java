@@ -1,5 +1,6 @@
 package com.example.demo.search;
 
+import com.example.demo.review.repository.ReviewRepository;
 import com.example.demo.search.dto.SearchResultDto;
 import com.example.demo.search.service.SearchService;
 import com.example.demo.store.entity.Category;
@@ -13,12 +14,16 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.data.domain.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 public class SearchServiceTest {
+
+	@Mock
+	private ReviewRepository reviewRepository;
 
 	@Mock
 	private StoreRepository storeRepository;
@@ -42,7 +47,7 @@ public class SearchServiceTest {
 		StoreEntity store = StoreEntity.builder()
 			.storeId(storeId)
 			.name("한솥도시락")
-			.category(Category.KOREAN) // 한식
+			.category(Category.KOREAN)
 			.imgURL("http://image.com/abc.jpg")
 			.build();
 
@@ -51,10 +56,10 @@ public class SearchServiceTest {
 
 		when(storeRepository.searchVisibleStoresByKeyword(keyword, pageable)).thenReturn(storePage);
 
-		// when
+		when(reviewRepository.calculateAverageRatingByStoreId(storeId)).thenReturn(Optional.of(4.3));
+
 		Page<SearchResultDto> result = searchService.search(keyword, page, size, sortBy);
 
-		// then
 		assertThat(result.getContent()).hasSize(1);
 		SearchResultDto dto = result.getContent().get(0);
 
@@ -63,13 +68,17 @@ public class SearchServiceTest {
 		System.out.println("이름: " + dto.getStoreName());
 		System.out.println("카테고리: " + dto.getCategory());
 		System.out.println("이미지 URL: " + dto.getImgURL());
+		System.out.println("평점: " + dto.getAverageRating());
 
 		assertThat(dto.getStoreName()).isEqualTo("한솥도시락");
 		assertThat(dto.getCategory()).isEqualTo("한식");
 		assertThat(dto.getImgURL()).isEqualTo("http://image.com/abc.jpg");
+		assertThat(dto.getAverageRating()).isEqualTo(4.3);
 
 		verify(storeRepository, times(1)).searchVisibleStoresByKeyword(keyword, pageable);
+		verify(reviewRepository, times(1)).calculateAverageRatingByStoreId(storeId);
 	}
+
 	@Test
 	void 검색결과_없을때_빈페이지_반환() {
 		// given
@@ -83,10 +92,8 @@ public class SearchServiceTest {
 
 		when(storeRepository.searchVisibleStoresByKeyword(keyword, pageable)).thenReturn(emptyPage);
 
-		// when
 		Page<SearchResultDto> result = searchService.search(keyword, page, size, sortBy);
 
-		// then
 		System.out.println("🔍 검색 결과 없음 테스트:");
 		System.out.println("검색 결과 수: " + result.getContent().size());
 
