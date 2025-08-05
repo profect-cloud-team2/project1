@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 // public class AiResult {
 // }
-public class AiResponseDto {
+public class StoreAiResponseDto {
 	private final String request;
 	private final String response;
 }
