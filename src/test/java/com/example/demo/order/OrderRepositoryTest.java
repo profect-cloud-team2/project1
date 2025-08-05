@@ -78,7 +78,7 @@ class OrderRepositoryTest {
 	@Test
 	@DisplayName("10분 초과 주문 조회")
 	void findByOrderStatusAndCreatedAtBeforeAndDeletedAtIsNull() {
-		OrderStatus status = OrderStatus.주문접수;
+		OrderStatus status = OrderStatus.RECEIVED;
 		LocalDateTime time = LocalDateTime.now().minusMinutes(10);
 		OrderEntity order = new OrderEntity();
 		order.setOrderId(UUID.randomUUID());

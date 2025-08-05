@@ -67,7 +67,7 @@ public class StoreControllerTest {
 		dto.setClosedTime("22:00");
 		dto.setIntroduction("테스트용");
 		dto.setImgURL("http://image.com");
-		dto.setIsAvailable(StoreStatus.OPEN);
+		//dto.setIsAvailable(StoreStatus.OPEN);
 
 		StoreResponseDto responseDto = new StoreResponseDto(
 			UUID.randomUUID(),
